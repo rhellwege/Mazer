@@ -13,6 +13,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
 $(ODIR)/%.o: $(SRC)%.cpp $(DEPS)
+	@mkdir -p obj
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 mazer: $(OBJ)

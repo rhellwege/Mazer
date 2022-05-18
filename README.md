@@ -3,10 +3,11 @@ A minimalist commandline interface maze generator and solver. Note that all maze
 
 ## How to build
 ### Linux
-1. install make and gcc with brew if they aren't installed already
-2. build with the command `` make```
+1. install make and gcc with brew if they aren't installed already ```sudo apt install gcc make``` or ```sudo pacman -S gcc make```
+2. build with the command ```make```
 ### Mac
 1. install make and gcc with brew if they aren't installed already ```brew install gcc make```
+2. build with the command ```make```
 ### Windows
 
 ## How to run

@@ -12,16 +12,19 @@ Arg | Purpose
 --- | -------------
 -w | width of cells the generated maze will have *(20 by default)*
 -h | height of cells the generated maze will have *(20 by default)*
--g | generator algorithm *(DFS by default)*
--s | solving algorithm *(DFS by default)*
+-s | choose the seed for random generation (will change everytime)
 -o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
 -d | sets the delay of the gifs *in milliseconds*
 --no-gif | makes it so mazer doesnt save any gifs
---seed | choose the seed for random generation (will change everytime)
+--generator | generator algorithm *(DFS by default)*
+--solver | solving algorithm *(DFS by default)* 
 
-### Example command:
+### Example commands:
 ```bash
-./mazer -w 10 -h 10 -g DFS -s DFS -o DFS/
+./mazer -w 10 -h 10 --generator DFS --solver DFS -o DFS/
+```
+```bash
+./mazer --generator khruskals --solver dijkstra -o ./
 ```
 
 ## Output

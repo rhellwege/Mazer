@@ -6,15 +6,16 @@
 #include "../include/Image.h"
 
 int main(int argc, char** argv) {
-    int flags, opt;
-    int nsecs, tfnd;
+    // int flags, opt;
+    // int nsecs, tfnd;
 
-    while ((opt) = getopt(argc, argv, "tttt"))
+    // while ((opt) = getopt(argc, argv, "tttt") != -1)
     
     srand(time(NULL));
     Maze maze = Maze(20, 20);
-    Image i(maze);
+    Image i;
     maze.genDFS();
+    i.update(maze);
     i.save_to_file("unsolved.png");
     maze.solveDFS();
     i.update(maze);

@@ -11,6 +11,8 @@ Maze::Maze(int w, int h) {
     }
     start = &grid[W/2][0];
     finish = &grid[W/2][H-1];
+    start->setVal(CELL_START);
+    finish->setVal(CELL_FINISH);
 }
 
 int Maze::getVal(int x, int y) {
@@ -58,12 +60,10 @@ void Maze::genKhruskhal() {
 /* -------------------- SOLVERS -------------------- */
 
 bool Maze::solveDFSHelper(Cell* c) {
-    if (c == finish) {
-        c->setVal(CELL_PATH);
-        return true;
-    }
+    if (c == finish) return true;
     if (c->getVal() == 1) return false;
-    c->setVal(CELL_PATH);
+    if (c != start)
+        c->setVal(CELL_PATH);
     std::vector<Cell*> accessible = c->accessibleNeighbours();
     for (auto n : accessible) 
         if (solveDFSHelper(n)) return true;
@@ -73,8 +73,6 @@ bool Maze::solveDFSHelper(Cell* c) {
 
 void Maze::solveDFS() {
    solveDFSHelper(start);
-   start->setVal(CELL_START);
-   finish->setVal(CELL_FINISH);
 } 
 
 void Maze::solveBFS() {

@@ -4,30 +4,29 @@
 #include <stdlib.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../include/stb_image.h"
+#include "../deps/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../include/stb_image_write.h"
+#include "../deps/stb_image_write.h"
 
 Image::Image(int _cellLen, int _wallLen, int _channels) {
+	
 	channels = _channels;
 	wallLen = _wallLen;
 	cellLen = _cellLen;
 	width = 0;
 	height = 0;
 	data = nullptr;
-}
-
-Image::Image(Maze& m, int _cellLen, int _wallLen, int _channels) {
-	Image(_cellLen, _wallLen, _channels);
-	update(m);
+	printf("w: %i, h: %i.\n", wallLen, cellLen);
 }
 
 void Image::update(Maze& m) {
-	if (data) free(data);
+	printf("%p", data);
+	//if (data != nullptr) free(data);
 	width = m.getWidth() * (wallLen + cellLen) + wallLen;
 	height = m.getHeight() * (wallLen + cellLen) + wallLen;
+	
 	data = (unsigned char*)malloc(channels * width * height);
-	printf("w: %i, h: %i.\n", width, height);
+	//printf("w: %i, h: %i.\n", width, height);
 
 	// draw the cells:
 	for (int x = 0; x < m.getWidth(); ++x) {
@@ -44,6 +43,13 @@ void Image::update(Maze& m) {
 		}
 	}
 }
+
+Image::Image(Maze& m, int _cellLen, int _wallLen, int _channels) : Image(_cellLen, _wallLen, _channels) {
+	
+	update(m);
+	//printf("w: %i, h: %i.\n", wallLen, cellLen);
+}
+
 
 Image::~Image() {
 	free(data);
@@ -84,5 +90,6 @@ void Image::fillRect(int x, int y, int w, int h, RGB col) {
 }
 
 void Image::save_to_file(const char* fname) {
+	printf("saving %s...\n", fname);
 	stbi_write_png(fname, width, height, channels, data, width * channels);
 }

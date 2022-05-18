@@ -41,11 +41,12 @@ On top of that there will be two gifs generated:
 
 Additionally a text file will be included with the seed of the generation so you can reuse it for testing.
 
-![Example](test.png)
+![Unsolved](unsolved.png)
+![Solved](solved.png)
 
 ## Credit
-For png writing I used [stb](https://github.com/nothings/stb)
-For gif writing I used [gif-h](https://github.com/charlietangora/gif-h/blob/master/gif.h)
+1. For png writing I used [stb](https://github.com/nothings/stb)
+2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h/blob/master/gif.h)
 
 ## TODO
 - [ ] getopt commandline options

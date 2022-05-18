@@ -1,0 +1,10 @@
+#pragma once
+#include <vector>
+#include <stack>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <queue>
+#include <set>
+#include <map>
+#include <iterator>

@@ -4,9 +4,12 @@
 int main() {
     srand(time(NULL));
     Maze maze = Maze(20, 20);
+    Image i(maze);
     maze.genDFS();
+    i.save_to_file("unsolved.png");
     maze.solveDFS();
-    Image i = Image(maze, 8, 1, 3);
-    i.save_to_file("test.png");
+    i.update(maze);
+    i.save_to_file("solved.png");
+    
     return 0;
 }

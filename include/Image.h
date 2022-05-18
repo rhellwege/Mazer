@@ -12,18 +12,24 @@ const RGB blue = RGB{0, 0, 255};
 const RGB lightblue = RGB{0, 120, 200};
 const RGB green = RGB{0, 255, 0};
 
+#define DEFAULT_CELL_LEN 8
+#define DEFAULT_WALL_LEN 2
+#define DEFAULT_CHANNELS 3
+
 const RGB cell_colors[5] = {white, blue, lightblue, green, red};
 
 class Image {
 private: 
-    int width, height, channels, stride, wallLen, cellLen;
+    int width, height, channels, wallLen, cellLen;
     unsigned char* data;
     void setPixel(int x, int y, RGB col);
     void fillRect(int x, int y, int w, int h, RGB col);
 
 public: 
-    Image(Maze& m, int _cellLen, int _wallLen, int _channels);
+    Image(int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
+    Image(Maze& m, int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
     ~Image();
+    void update(Maze& m);
     int getWidth();
     int getHeight();
     int getChannels();

@@ -8,15 +8,25 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../include/stb_image_write.h"
 
-Image::Image(Maze& m, int _cellLen, int _wallLen, int _channels) {
+Image::Image(int _cellLen, int _wallLen, int _channels) {
 	channels = _channels;
-	stride = channels;
 	wallLen = _wallLen;
 	cellLen = _cellLen;
+	width = 0;
+	height = 0;
+	data = nullptr;
+}
+
+Image::Image(Maze& m, int _cellLen, int _wallLen, int _channels) {
+	Image(_cellLen, _wallLen, _channels);
+	update(m);
+}
+
+void Image::update(Maze& m) {
+	if (data) free(data);
 	width = m.getWidth() * (wallLen + cellLen) + wallLen;
 	height = m.getHeight() * (wallLen + cellLen) + wallLen;
-
-	data = (unsigned char*)malloc(stride * width * height);
+	data = (unsigned char*)malloc(channels * width * height);
 	printf("w: %i, h: %i.\n", width, height);
 
 	// draw the cells:

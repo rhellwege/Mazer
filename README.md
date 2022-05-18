@@ -31,7 +31,7 @@ Each generated image is color coded.
 ![Example](test.png)
 
 ## Credit
-For image writing I used stb [Github](https://github.com/nothings/stb)
+For image writing I used [stb](https://github.com/nothings/stb)
 
 ## TODO
 - [ ] getopt commandline options

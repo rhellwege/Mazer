@@ -3,6 +3,8 @@
 #include "Cell.h"
 #include "ImageWriter.h"
 
+#define DEFAULT_WIDTH 20
+#define DEFAULT_HEIGHT 20
 #define DEFAULT_CELL_LEN 8
 #define DEFAULT_WALL_LEN 2
 #define DEFAULT_GIF_DELAY 20
@@ -19,16 +21,17 @@ private:
     std::vector<std::vector<Cell>> grid;
     int W, H, cellLen, wallLen;
     Cell* start, *finish;
-    bool solveDFSHelper(Cell* c);
+    const char* dir;
     GifWriter* gw;
     int gifDelay;
     bool saveGif;
     ImageWriter* iw;
 
+    bool solveDFSHelper(Cell* c);
     void dfsGenHelper(Cell* c);
     
 public:
-    Maze(int w, int h, int _wallLen = DEFAULT_WALL_LEN, int _cellLen = DEFAULT_CELL_LEN);
+    Maze(int w = DEFAULT_WIDTH, int h = DEFAULT_HEIGHT, int _wallLen = DEFAULT_WALL_LEN, int _cellLen = DEFAULT_CELL_LEN);
 
     int getVal(int x, int y);
     int getWidth();
@@ -36,8 +39,7 @@ public:
     Cell* getCell(int x, int y);
 
     void genDFS();
-    void genUnion();
-    void genKhruskhal();
+    void genKruskal();
     
     void solveDFS();
     void solveBFS();

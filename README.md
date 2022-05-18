@@ -29,7 +29,7 @@ Arg | Purpose
 ./mazer -w 10 -h 10 --generator DFS --solver DFS -o DFS/
 ```
 ```bash
-./mazer --generator khruskals --solver dijkstra -o ./
+./mazer --generator kruskal --solver dijkstra -o ./
 ```
 
 ## Output
@@ -60,7 +60,8 @@ Additionally a text file will be included with the seed of the generation so you
 2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
 
 ## TODO
-- [ ] support 4 channels so gifs are compatible
+- [ ] optimize image updates so only the region currently being worked on is updated, not the entire image
 - [ ] getopt commandline options
-- [ ] khruskhal generation
-- [ ] animated gif
+- [ ] Kruskal generation
+- [ ] Dijkstra
+- [ ] Astar

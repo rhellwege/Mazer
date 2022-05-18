@@ -6,6 +6,8 @@
 int main(int argc, char** argv) {
     unsigned int seed = time(NULL);
     const char* dir;
+    
+
     // int flags, opt;
     // int nsecs, tfnd;
 
@@ -14,6 +16,6 @@ int main(int argc, char** argv) {
     srand(seed);
     Maze maze = Maze(20, 20);
     maze.genDFS();
-    maze.solveDFS();
+    maze.solveBFS();
     return 0;
 }

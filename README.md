@@ -47,9 +47,10 @@ Additionally a text file will be included with the seed of the generation so you
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)
-2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h/blob/master/gif.h)
+2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
 
 ## TODO
+- [ ] support 4 channels so gifs are compatible
 - [ ] getopt commandline options
 - [ ] khruskhal generation
 - [ ] animated gif

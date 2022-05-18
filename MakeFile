@@ -1,12 +1,11 @@
-IDIR =include/
+IDIR =include/,deps/
 CC=g++
 CFLAGS=-I$(IDIR)
 SRC=src/
 
 ODIR=obj
 
-_DEPS = Cell.h common.h Image.h Maze.h
-DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+DEPS = $(patsubst %,$(IDIR)/%)
 
 _OBJ = Cell.o Image.o main.o Maze.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))

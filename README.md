@@ -1,5 +1,5 @@
 # Mazer
-A minimalist commandline interface maze generator and solver. Note that all mazes generated are true traditional mazes where each cell is visited once.
+A minimalist commandline interface maze generator and solver. Note that all mazes generated are true traditional mazes where each cell is visited once. This was created as part of a project for Professor Nadia Ahmed's CS1D class to demonstrate path finding algorithims.
 
 ## How to build
 Make sure you have make installed, and simply run make in the console in this directory.
@@ -44,7 +44,8 @@ Additionally a text file will be included with the seed of the generation so you
 ![Example](test.png)
 
 ## Credit
-For image writing I used [stb](https://github.com/nothings/stb)
+For png writing I used [stb](https://github.com/nothings/stb)
+For gif writing I used [gif-h](https://github.com/charlietangora/gif-h/blob/master/gif.h)
 
 ## TODO
 - [ ] getopt commandline options

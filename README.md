@@ -2,8 +2,12 @@
 A minimalist commandline interface maze generator and solver. Note that all mazes generated are true traditional mazes where each cell is visited once. This was created as part of a project for Professor Nadia Ahmed's CS1D class to demonstrate path finding algorithims.
 
 ## How to build
-Make sure you have make installed, and simply run make in the console in this directory.
-I'm pretty sure this is only buildable on linux.
+### Linux
+1. install make and gcc with brew if they aren't installed already
+2. build with the command ```bash make```
+### Mac
+1. install make and gcc with brew if they aren't installed already ```bash brew install gcc make```
+### Windows
 
 ## How to run
 run mazer in the commandline with options

@@ -47,6 +47,8 @@ Additionally a text file will be included with the seed of the generation so you
 
 ![Unsolved](unsolved.png)
 ![Solved](solved.png)
+![Maze Generation Gif](maze-gen.gif)
+![Maze Solve Gif](solve.gif)
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)

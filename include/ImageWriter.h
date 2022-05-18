@@ -4,17 +4,17 @@ struct RGBA {
     unsigned char r, g, b, a;
 };
 
-const static RGBA white = RGBA{255, 255, 255, 255};
-const static RGBA black = RGBA{0, 0, 0, 255};
-const static RGBA red = RGBA{255, 0, 0, 255};
-const static RGBA blue = RGBA{0, 0, 255, 255};
-const static RGBA lightblue = RGBA{0, 120, 200, 255};
-const static RGBA green = RGBA{0, 255, 0, 255};
+const static RGBA COLOR_WHITE = RGBA{255, 255, 255, 255};
+const static RGBA COLOR_BLACK = RGBA{0, 0, 0, 255};
+const static RGBA COLOR_RED = RGBA{255, 0, 0, 255};
+const static RGBA COLOR_BLUE = RGBA{0, 0, 255, 255};
+const static RGBA COLOR_LIGHTBLUE = RGBA{0, 120, 200, 255};
+const static RGBA COLOR_GREEN = RGBA{0, 255, 0, 255};
 
 
 #define DEFAULT_CHANNELS 4
 
-const RGBA cell_colors[5] = {white, blue, lightblue, green, red};
+const RGBA cell_colors[5] = {COLOR_WHITE, COLOR_BLUE, COLOR_LIGHTBLUE, COLOR_GREEN, COLOR_RED};
 
 class ImageWriter {
 private: 
@@ -22,6 +22,7 @@ private:
     unsigned char* data;
 
 public: 
+    ImageWriter();
     ImageWriter(int w, int h, int _channels = DEFAULT_CHANNELS);
     ~ImageWriter();
     void setPixel(int x, int y, RGBA col);

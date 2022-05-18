@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/ImageWriter.h"
 #include "../include/Maze.h"
 
 int main(int argc, char** argv) {
@@ -16,6 +15,5 @@ int main(int argc, char** argv) {
     Maze maze = Maze(20, 20);
     maze.genDFS();
     maze.solveDFS();
-    
     return 0;
 }

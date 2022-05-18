@@ -8,6 +8,14 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../deps/stb_image_write.h"
 
+
+ImageWriter::ImageWriter() {
+	width = 0;
+	height = 0;
+	channels = 0;
+	data = nullptr;
+}
+
 ImageWriter::ImageWriter(int w, int h, int _channels) {
 	width = w;
 	height = h;
@@ -39,7 +47,13 @@ unsigned char* ImageWriter::getData() {
 	return data;
 }
 
+void printPix(RGBA p) {
+	printf("RGBA: (%i,%i,%i,%i)\n", p.r, p.g, p.b, p.a);
+}
+
 void ImageWriter::setPixel(int x, int y, RGBA col) {
+	
+	if (x < 0 || x >= width || y < 0 || y >= height) printf("ERROR: setpixel out of bounds (%i,%i)\n", x, y);
 	RGBA* pixelOffset = (RGBA*)(data + (x + width * y) * channels);
 	pixelOffset->r = col.r;
 	pixelOffset->g = col.g;

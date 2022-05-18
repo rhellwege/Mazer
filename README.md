@@ -7,12 +7,12 @@ I'm pretty sure this is only buildable on linux.
 
 ## How to run
 run mazer in the commandline with options
--w: width of cells the generated maze will have
--h: height of cells the generated maze will have
--g: generator algorithim
-    DFS - depth first search generation.
--s: solving algorithim
-    DFS - depth first search
+* -w: width of cells the generated maze will have
+* -h: height of cells the generated maze will have
+* -g: generator algorithim
+    -- DFS - depth first search generation.
+* -s: solving algorithim
+    --DFS - depth first search
 
 ## Output
 Each generated image is color coded.

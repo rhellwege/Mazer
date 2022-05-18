@@ -22,11 +22,17 @@ run mazer in the commandline with options
 
 ## Output
 Each generated image is color coded.
-**White** represents an unvisited cell.
-**Black** represents a wall
-**Dark blue** represents the correct path
-*Light blue* represents a tile that was visited during the solving phase, but is not included in the final path.
-*Green* represents the starting cell, and **Red** represents the ending cell.
+
+> **White** represents an unvisited cell.
+
+> **Black** represents a wall
+
+> **Dark blue** represents the correct path
+
+> *Light blue* represents a tile that was visited during the solving phase
+> but is not included in the final path.
+
+> *Green* represents the starting cell, and **Red** represents the ending cell.
 
 ![Example](test.png)
 

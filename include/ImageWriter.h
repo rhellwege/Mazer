@@ -18,7 +18,7 @@ const RGB green = RGB{0, 255, 0};
 
 const RGB cell_colors[5] = {white, blue, lightblue, green, red};
 
-class Image {
+class ImageWriter {
 private: 
     int width, height, channels, wallLen, cellLen;
     unsigned char* data;
@@ -26,9 +26,9 @@ private:
     void fillRect(int x, int y, int w, int h, RGB col);
 
 public: 
-    Image(int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
-    Image(Maze& m, int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
-    ~Image();
+    ImageWriter(int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
+    ImageWriter(Maze& m, int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
+    ~ImageWriter();
     void update(Maze& m);
     int getWidth();
     int getHeight();

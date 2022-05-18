@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "../include/Maze.h"
-#include "../include/Image.h"
+#include "../include/ImageWriter.h"
 
 int main(int argc, char** argv) {
     // int flags, opt;
@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     
     srand(time(NULL));
     Maze maze = Maze(20, 20);
-    Image i;
+    ImageWriter i;
     maze.genDFS();
     i.update(maze);
     i.save_to_file("unsolved.png");

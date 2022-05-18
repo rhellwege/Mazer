@@ -5,15 +5,15 @@ SRC=src/
 
 ODIR=obj
 
-_DEPS = Cell.h common.h Image.h Maze.h
+_DEPS = Cell.h common.h ImageWriter.h Maze.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = Cell.o Image.o main.o Maze.o
+_OBJ = Cell.o ImageWriter.o main.o Maze.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
 $(ODIR)/%.o: $(SRC)%.cpp $(DEPS)
-	@mkdir -p obj
+	@mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 mazer: $(OBJ)

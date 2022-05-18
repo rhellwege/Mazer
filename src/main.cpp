@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include "../include/ImageWriter.h"
 #include "../include/Maze.h"
 
 int main(int argc, char** argv) {
@@ -14,13 +14,8 @@ int main(int argc, char** argv) {
     
     srand(seed);
     Maze maze = Maze(20, 20);
-    ImageWriter i;
     maze.genDFS();
-    i.update(maze);
-    i.save_to_file("unsolved.png");
     maze.solveDFS();
-    i.update(maze);
-    i.save_to_file("solved.png");
     
     return 0;
 }

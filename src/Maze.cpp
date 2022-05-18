@@ -1,8 +1,11 @@
 #include "../include/Maze.h"
 
-Maze::Maze(int w, int h) {
+Maze::Maze(int w, int h, int _wallLen, int _cellLen) {
     W = w;
     H = h;
+    iw = ImageWriter(w, h);
+    wallLen = _wallLen;
+    cellLen = _cellLen;
     for (int i = 0; i < w; ++i) {
         grid.push_back({});
         for (int j = 0; j < h; ++j) {
@@ -13,6 +16,7 @@ Maze::Maze(int w, int h) {
     finish = &grid[W/2][H-1];
     start->setVal(CELL_START);
     finish->setVal(CELL_FINISH);
+    
 }
 
 int Maze::getVal(int x, int y) {
@@ -48,6 +52,8 @@ void Maze::genDFS() {
     dfsGenHelper(start);
     start->destroyWall(0);
     finish->destroyWall(2);
+    updateImage();
+    saveImage("unsolved.png");
 }
 
 void Maze::genUnion() {
@@ -73,6 +79,8 @@ bool Maze::solveDFSHelper(Cell* c) {
 
 void Maze::solveDFS() {
    solveDFSHelper(start);
+   updateImage();
+   saveImage("solved.png");
 } 
 
 void Maze::solveBFS() {
@@ -83,4 +91,27 @@ void Maze::solveAStar() {
 }
 void Maze::solveDijkstra() {
 
+}
+
+// image
+
+void Maze::updateImage() {
+	// draw the cells:
+	for (int x = 0; x < getWidth(); ++x) {
+		for (int y = 0; y < getHeight(); ++y) {
+			std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
+			int outsideLen = cellLen+(wallLen*2);
+			Cell* c = getCell(x, y);
+			iw.fillRect(topLeft.first, topLeft.second, outsideLen, outsideLen, cell_colors[c->getVal()]);
+			if (c->north()) iw.fillRect(topLeft.first, topLeft.second, outsideLen, wallLen, black);
+			if (c->east()) iw.fillRect(topLeft.first + cellLen + wallLen, topLeft.second, wallLen, outsideLen, black);
+			if (c->south()) iw.fillRect(topLeft.first, topLeft.second + cellLen + wallLen, outsideLen, wallLen, black);
+			if (c->west()) iw.fillRect(topLeft.first, topLeft.second, wallLen, outsideLen, black);
+			iw.fillRect(topLeft.first, topLeft.second, wallLen, wallLen, black);
+		}
+	}
+}
+
+void Maze::saveImage(const char* fname) {
+    iw.save_to_file(fname);
 }

@@ -10,14 +10,14 @@ run mazer in the commandline with options
 
 Arg | Purpose
 --- | -------------
--w | width of cells the generated maze will have *(20 by default)*
--h | height of cells the generated maze will have *(20 by default)*
--s | choose the seed for random generation (will change everytime)
--o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
--d | sets the delay of the gifs *in milliseconds*
---no-gif | makes it so mazer doesnt save any gifs
 --generator | generator algorithm *(DFS by default)*
 --solver | solving algorithm *(DFS by default)* 
+--no-gif | makes it so mazer doesnt save any gifs
+-w | width of cells the generated maze will have *(20 by default)*
+-h | height of cells the generated maze will have *(20 by default)*
+-s | choose the seed for random generation *(will change everytime by default)*
+-d | sets the delay of the gifs *in milliseconds*
+-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
 
 ### Example commands:
 ```bash

@@ -1,22 +1,22 @@
-IDIR =include/
-CC=g++
-CFLAGS=-I$(IDIR)
-SRC=src/
+EXE=mazer
+_DEPS = Cell.h common.h ImageWriter.h Maze.h
+_OBJ = Cell.o ImageWriter.o main.o Maze.o
 
+IDIR =include/
+SRC=src/
 ODIR=obj
 
-_DEPS = Cell.h common.h ImageWriter.h Maze.h
+CC=g++
+CFLAGS=-I$(IDIR)
+
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
-
-_OBJ = Cell.o ImageWriter.o main.o Maze.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-
 
 $(ODIR)/%.o: $(SRC)%.cpp $(DEPS)
 	@mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-mazer: $(OBJ)
+$(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean

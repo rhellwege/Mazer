@@ -1,7 +1,8 @@
 #pragma once
 #include "common.h"
 #include "Cell.h"
-
+#include "ImageWriter.h"
+#include "../deps/gif.h"
 
 class Maze {
 private:
@@ -9,6 +10,8 @@ private:
     int W, H;
     Cell* start, *finish;
     bool solveDFSHelper(Cell* c);
+    GifWriter gw;
+    ImageWriter iw;
 
 public:
     Maze(int w, int h);
@@ -26,5 +29,11 @@ public:
     void solveBFS();
     void solveAStar();
     void solveDijkstra();
+
+    void startGif(const char* gifName);
+    void endGif();
+
+    void updateImage();
+    void saveImage(const char* imgName);
 
 };

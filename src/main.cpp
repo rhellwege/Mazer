@@ -3,15 +3,16 @@
 #include <stdio.h>
 
 #include "../include/Maze.h"
-#include "../include/ImageWriter.h"
 
 int main(int argc, char** argv) {
+    unsigned int seed = time(NULL);
+    const char* dir;
     // int flags, opt;
     // int nsecs, tfnd;
 
     // while ((opt) = getopt(argc, argv, "tttt") != -1)
     
-    srand(time(NULL));
+    srand(seed);
     Maze maze = Maze(20, 20);
     ImageWriter i;
     maze.genDFS();

@@ -7,14 +7,16 @@ I'm pretty sure this is only buildable on linux.
 
 ## How to run
 run mazer in the commandline with options
-* -w: width of cells the generated maze will have *(20 by default)*
-* -h: height of cells the generated maze will have *(20 by default)*
-* -g: generator algorithim *(DFS by default)*
-    * DFS - depth first search generation.
-* -s: solving algorithim *(DFS by default)*
-    * DFS - depth first search
-* -o: specifies the directory mazer will output pictures and gifs to *(./ by default)*
-* --no-gif: makes it so mazer doesnt save any gifs
+
+Arg | Explanation
+--- | -------------
+-w | width of cells the generated maze will have *(20 by default)*
+-h | height of cells the generated maze will have *(20 by default)*
+-g | generator algorithim *(DFS by default)*
+-s | solving algorithim *(DFS by default)*
+-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
+--no-gif | makes it so mazer doesnt save any gifs
+
 ### Example command:
 ```bash
 ./mazer -w 10 -h 10 -g DFS -s DFS -o DFS/

@@ -22,13 +22,13 @@ class ImageWriter {
 private: 
     int width, height, channels, wallLen, cellLen;
     unsigned char* data;
-    void setPixel(int x, int y, RGB col);
-    void fillRect(int x, int y, int w, int h, RGB col);
 
 public: 
     ImageWriter(int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
     ImageWriter(Maze& m, int _cellLen = DEFAULT_CELL_LEN, int _wallLen = DEFAULT_WALL_LEN, int _channels = DEFAULT_CHANNELS);
     ~ImageWriter();
+    void setPixel(int x, int y, RGB col);
+    void fillRect(int x, int y, int w, int h, RGB col);
     void update(Maze& m);
     int getWidth();
     int getHeight();

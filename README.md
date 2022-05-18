@@ -15,6 +15,7 @@ Arg | Purpose
 -g | generator algorithm *(DFS by default)*
 -s | solving algorithm *(DFS by default)*
 -o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
+-d | sets the delay of the gifs *in milliseconds*
 --no-gif | makes it so mazer doesnt save any gifs
 --seed | choose the seed for random generation (will change everytime)
 

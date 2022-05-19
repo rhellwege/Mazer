@@ -64,4 +64,4 @@ Additionally a text file will be included with the seed of the generation so you
 - [ ] Kruskal generation
 - [ ] Dijkstra
 - [ ] Astar
-- [ ] make it so there is only one gif including generation and solving
+- [ ] Add an option to seperate gifs into maze generation and solve

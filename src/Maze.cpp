@@ -66,12 +66,12 @@ void Maze::dfsGenHelper(Cell* c) {
 }
 
 void Maze::genDFS() {
-    if (saveGif) startGif("maze-gen(DFS).gif");
+    if (saveGif) startGif("solve.gif");
     dfsGenHelper(start);
     if (!saveGif)
         updateImage();
     saveImage("unsolved(DFS).png");
-    if (saveGif) endGif();
+    //if (saveGif) endGif();
 }
 
 void Maze::genKruskal() {
@@ -114,7 +114,7 @@ bool Maze::solveDFSHelper(Cell* c) {
 }
 
 void Maze::solveDFS() {
-    if (saveGif) startGif("solve(DFS).gif");
+    //if (saveGif) startGif("solve(DFS).gif");
     solveDFSHelper(start);
     //updateImage();
     if (!saveGif) updateImage();
@@ -123,7 +123,7 @@ void Maze::solveDFS() {
 } 
 
 void Maze::solveBFS() {
-    if (saveGif) startGif("solve(BFS).gif");
+    //if (saveGif) startGif("solve(BFS).gif");
     std::queue<Cell*> q;
     std::unordered_map<Cell*, Cell*> path;
     Cell* current = start;

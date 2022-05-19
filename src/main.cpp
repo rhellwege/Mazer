@@ -16,6 +16,6 @@ int main(int argc, char** argv) {
     srand(seed);
     Maze maze = Maze(10, 10);
     maze.genDFS();
-    maze.solveDFS();
+    maze.solveBFS();
     return 0;
 }

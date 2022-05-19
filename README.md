@@ -60,8 +60,8 @@ Additionally a text file will be included with the seed of the generation so you
 2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
 
 ## TODO
-- [ ] optimize image updates so only the region currently being worked on is updated, not the entire image
 - [ ] getopt commandline options
 - [ ] Kruskal generation
 - [ ] Dijkstra
 - [ ] Astar
+- [ ] make it so there is only one gif including generation and solving

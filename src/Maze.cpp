@@ -55,8 +55,9 @@ void Maze::dfsGenHelper(Cell* c) {
     Cell* nextCell = c->randomNeighbour();
     while (nextCell != nullptr) {
         c->destroyBorder(nextCell);
+        updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
         if (saveGif) {
-            updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
+            
             addFrame();
         }
         dfsGenHelper(nextCell);
@@ -72,30 +73,6 @@ void Maze::genDFS() {
     saveImage("unsolved(DFS).png");
     if (saveGif) endGif();
 }
-
-// void Maze::genBFS() {
-//     if (saveGif) startGif("maze-gen(BFS).gif");
-//     std::queue<Cell*> q;
-//     Cell* current;
-//     q.push(start);
-//     while (q.size()) {
-//         std::cout << q.size() << std::endl;
-//         current = q.front(); q.pop();
-//         if (saveGif) updateGif();
-//         current->visit();
-//         Cell* neighbour = current->randomNeighbour();
-//         while (neighbour != nullptr) {
-//              std::cout << neighbour << std::endl;
-//             current->destroyBorder(neighbour);
-//             q.push(neighbour);
-//             neighbour->visit();
-//             neighbour = current->randomNeighbour();
-//         }
-//     }
-//     updateImage();
-//     saveImage("unsolved(BFS).png");
-//     if (saveGif) endGif();
-// }
 
 void Maze::genKruskal() {
     // if (saveGif) startGif("maze-gen(kruskal).gif");
@@ -127,7 +104,8 @@ bool Maze::solveDFSHelper(Cell* c) {
     std::vector<Cell*> accessible = c->accessibleNeighbours();
     for (auto n : accessible) 
         if (solveDFSHelper(n)) return true;
-    c->setVal(CELL_WASTED);
+    if (c != start)
+        c->setVal(CELL_WASTED);
     if (saveGif) {
         updateCellCol(c);
         addFrame();
@@ -140,6 +118,7 @@ void Maze::solveDFS() {
     solveDFSHelper(start);
     //updateImage();
     if (!saveGif) updateImage();
+    saveImage("solved(DFS).png");
     if (saveGif) endGif();
 } 
 
@@ -263,6 +242,7 @@ void Maze::saveImage(const char* fname) {
 }
 
 void Maze::startGif(const char* gifName) {
+    printf("Starting GIF %s...\n", gifName);
     GifBegin(gw, gifName, iw->getWidth(), iw->getHeight(), gifDelay);
 }
 

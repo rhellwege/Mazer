@@ -7,7 +7,7 @@
 #define DEFAULT_HEIGHT 20
 #define DEFAULT_CELL_LEN 8
 #define DEFAULT_WALL_LEN 2
-#define DEFAULT_GIF_DELAY 20
+#define DEFAULT_GIF_DELAY 10
 
 typedef struct
 {
@@ -39,7 +39,6 @@ public:
     Cell* getCell(int x, int y);
 
     void genDFS();
-    //void genBFS();
     void genKruskal();
     
     void solveDFS();

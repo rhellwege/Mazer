@@ -12,7 +12,22 @@
 #define DEFAULT_GENERATOR "dfs"
 #define DEFAULT_SOLVER "dfs"
 
+void printUsage() {
+    std::cout << "Mazer Usage:\n"
+        <<"-g | generator algorithm *(DFS by default)*\n"
+        <<"\tdfs\n\tkruskal\n"
+        <<"-s | solving algorithm *(DFS by default)* \n"
+        <<"\tdfs\n\tbfs\n"
+        <<"-n | makes it so mazer doesnt save any gifs\n"
+        <<"-w | width of cells the generated maze will have *(20 by default)*\n"
+        <<"-h | height of cells the generated maze will have *(20 by default)*\n"
+        <<"-r | choose the seed for random generation *(will change everytime by default)*\n"
+        <<"-d | sets the delay of the gifs *in milliseconds*\n"
+        <<"-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*\n";
+}
+
 int main(int argc, char** argv) {
+    printUsage();
     std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS;
     GEN_FUNCS["dfs"] = &Maze::genDFS;
     GEN_FUNCS["kruskal"] = &Maze::genKruskal;

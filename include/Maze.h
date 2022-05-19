@@ -39,6 +39,7 @@ public:
     Cell* getCell(int x, int y);
 
     void genDFS();
+    //void genBFS();
     void genKruskal();
     
     void solveDFS();
@@ -48,9 +49,14 @@ public:
 
     void startGif(const char* gifName);
     void updateGif();
+    void addFrame();
     void endGif();
 
+    void imgSetup();
     void updateImage();
+    void updateCellCol(Cell* c);
+    void updateBorderPixels(Cell* c, int direction, RGBA col);
+    void updateCellPixels(Cell* c);
     void saveImage(const char* imgName);
 
 };

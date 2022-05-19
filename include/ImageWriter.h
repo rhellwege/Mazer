@@ -25,6 +25,7 @@ public:
     ImageWriter();
     ImageWriter(int w, int h, int _channels = DEFAULT_CHANNELS);
     ~ImageWriter();
+    RGBA* getPixel(int x, int y);
     void setPixel(int x, int y, RGBA col);
     void fillRect(int x, int y, int w, int h, RGBA col);
     int getWidth();

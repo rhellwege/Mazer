@@ -21,6 +21,7 @@ ImageWriter::ImageWriter(int w, int h, int _channels) {
 	height = h;
 	channels = _channels;
 	data = (unsigned char*)malloc(channels * width * height);
+	memset(data, 255, channels * width * height);
 }
 
 void ImageWriter::resize(int w, int h) {
@@ -51,8 +52,12 @@ void printPix(RGBA p) {
 	printf("RGBA: (%i,%i,%i,%i)\n", p.r, p.g, p.b, p.a);
 }
 
+RGBA* ImageWriter::getPixel(int x, int y) {
+	if (x < 0 || x >= width || y < 0 || y >= height) printf("ERROR: getpixel out of bounds (%i,%i)\n", x, y);
+	return (RGBA*)(data + (x + width * y) * channels);
+}
+
 void ImageWriter::setPixel(int x, int y, RGBA col) {
-	
 	if (x < 0 || x >= width || y < 0 || y >= height) printf("ERROR: setpixel out of bounds (%i,%i)\n", x, y);
 	RGBA* pixelOffset = (RGBA*)(data + (x + width * y) * channels);
 	pixelOffset->r = col.r;

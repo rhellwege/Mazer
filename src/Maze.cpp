@@ -26,6 +26,8 @@ Maze::Maze(int w, int h, int _wallLen, int _cellLen) {
     finish->setVal(CELL_FINISH);
     start->destroyWall(0);
     finish->destroyWall(2);
+    imgSetup();
+    updateImage();
 }
 
 int Maze::getVal(int x, int y) {
@@ -49,10 +51,14 @@ Cell* Maze::getCell(int x, int y) {
 void Maze::dfsGenHelper(Cell* c) {
     if (c->seen()) return;
     c->visit();
-    if (saveGif) updateGif();
+    
     Cell* nextCell = c->randomNeighbour();
     while (nextCell != nullptr) {
         c->destroyBorder(nextCell);
+        if (saveGif) {
+            updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
+            addFrame();
+        }
         dfsGenHelper(nextCell);
         nextCell = c->randomNeighbour();
     }
@@ -61,10 +67,35 @@ void Maze::dfsGenHelper(Cell* c) {
 void Maze::genDFS() {
     if (saveGif) startGif("maze-gen(DFS).gif");
     dfsGenHelper(start);
-    updateImage();
+    if (!saveGif)
+        updateImage();
     saveImage("unsolved(DFS).png");
     if (saveGif) endGif();
 }
+
+// void Maze::genBFS() {
+//     if (saveGif) startGif("maze-gen(BFS).gif");
+//     std::queue<Cell*> q;
+//     Cell* current;
+//     q.push(start);
+//     while (q.size()) {
+//         std::cout << q.size() << std::endl;
+//         current = q.front(); q.pop();
+//         if (saveGif) updateGif();
+//         current->visit();
+//         Cell* neighbour = current->randomNeighbour();
+//         while (neighbour != nullptr) {
+//              std::cout << neighbour << std::endl;
+//             current->destroyBorder(neighbour);
+//             q.push(neighbour);
+//             neighbour->visit();
+//             neighbour = current->randomNeighbour();
+//         }
+//     }
+//     updateImage();
+//     saveImage("unsolved(BFS).png");
+//     if (saveGif) endGif();
+// }
 
 void Maze::genKruskal() {
     // if (saveGif) startGif("maze-gen(kruskal).gif");
@@ -89,19 +120,26 @@ bool Maze::solveDFSHelper(Cell* c) {
     if (c->getVal() == CELL_PATH) return false;
     if (c != start)
         c->setVal(CELL_PATH);
-    if (saveGif) updateGif();
+    if (saveGif) {
+        updateCellCol(c);
+        addFrame();
+    }
     std::vector<Cell*> accessible = c->accessibleNeighbours();
     for (auto n : accessible) 
         if (solveDFSHelper(n)) return true;
     c->setVal(CELL_WASTED);
+    if (saveGif) {
+        updateCellCol(c);
+        addFrame();
+    }
     return false;
 }
 
 void Maze::solveDFS() {
     if (saveGif) startGif("solve(DFS).gif");
     solveDFSHelper(start);
-    updateImage();
-    saveImage("solved(DFS).png");
+    //updateImage();
+    if (!saveGif) updateImage();
     if (saveGif) endGif();
 } 
 
@@ -111,9 +149,13 @@ void Maze::solveBFS() {
     std::unordered_map<Cell*, Cell*> path;
     Cell* current = start;
     while (current != finish) {
-        if (saveGif) updateGif();
+        
         if (current != start)
             current->setVal(CELL_WASTED);
+        if (saveGif) {
+            updateCellCol(current);
+            addFrame();
+        }
         std::vector<Cell*> neighbours = current->accessibleNeighbours();
         for (auto neighbour : neighbours) {
             if (neighbour->getVal() != CELL_WASTED)  {
@@ -127,9 +169,12 @@ void Maze::solveBFS() {
         current = path[current];
         if (current == start) break;
         current->setVal(CELL_PATH);
-        if (saveGif) updateGif();
+        if (saveGif) {
+            updateCellCol(current);
+            addFrame();
+        }
     }
-    updateImage();
+    if (!saveGif) updateImage();
     saveImage("solved(BFS).png");
     if (saveGif) endGif();
 }
@@ -142,20 +187,73 @@ void Maze::solveDijkstra() {
 
 // image
 
+void Maze::updateBorderPixels(Cell* c, int direction, RGBA col) {
+    int x = c->getX();
+    int y = c->getY();
+    std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
+    switch  (direction) {
+        case 0:
+            iw->fillRect(topLeft.first + wallLen, topLeft.second, cellLen, wallLen, col);
+            break;
+        case 1:
+            iw->fillRect(topLeft.first + cellLen + wallLen, topLeft.second + wallLen, wallLen, cellLen, col);
+            break;
+        case 2:
+            iw->fillRect(topLeft.first + wallLen, topLeft.second + cellLen + wallLen, cellLen, wallLen, col);
+            break;
+        case 3:
+            iw->fillRect(topLeft.first, topLeft.second + wallLen, wallLen, cellLen, col);
+    }
+}
+
+void Maze::imgSetup()  { // draws all corners once so we dont repeat it
+    for (int x = 0; x < getWidth(); ++x) {
+		for (int y = 0; y < getHeight(); ++y) {
+        std::pair<int, int> tl = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
+		iw->fillRect(tl.first, tl.second, wallLen, wallLen, COLOR_BLACK); // corner
+        if (x == W-1) iw->fillRect(tl.first + wallLen + cellLen, tl.second, wallLen, wallLen, COLOR_BLACK);
+        if (y == H-1) iw->fillRect(tl.first, tl.second + wallLen + cellLen, wallLen, wallLen, COLOR_BLACK);
+        if (x == W-1 && y == H-1) iw->fillRect(tl.first + wallLen + cellLen, tl.second + wallLen + cellLen, wallLen, wallLen, COLOR_BLACK);
+		}
+	}
+}
+
+void Maze::updateCellCol(Cell* c) { // only updates pixels that arent border
+    if  (c->getVal() == CELL_UNVISITED) return; // we memset every pixel to white in imagewriter so we dont need to draw white anywhere.
+    RGBA col = cell_colors[c->getVal()];
+
+    int x = c->getX();
+    int y = c->getY();
+
+    std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
+    RGBA* otherCol = iw->getPixel(topLeft.first + wallLen, topLeft.second + wallLen);
+    if (col.r == otherCol->r && col.g == otherCol->g && col.b == otherCol->b) return;
+    std::pair<int, int> bottomRight = std::make_pair(topLeft.first + cellLen + wallLen, topLeft.second + cellLen + wallLen);
+
+    std::pair<int, int> tl = topLeft;
+
+    iw->fillRect(topLeft.first + wallLen, topLeft.second + wallLen, cellLen, cellLen, col);
+    if (!c->north()) updateBorderPixels(c, 0, col);
+    if (!c->east()) updateBorderPixels(c, 1, col);
+    if (!c->south()) updateBorderPixels(c, 2, col);
+    if (!c->west()) updateBorderPixels(c, 3, col);
+}
+
+void Maze::updateCellPixels(Cell* c) {
+    updateCellCol(c);
+
+	if (c->north()) updateBorderPixels(c, 0, COLOR_BLACK);
+	if (c->east()) updateBorderPixels(c, 1, COLOR_BLACK);
+	if (c->south()) updateBorderPixels(c, 2, COLOR_BLACK);
+	if (c->west()) updateBorderPixels(c, 3, COLOR_BLACK);
+}
+
+
 void Maze::updateImage() {
 	// draw the cells:
 	for (int x = 0; x < getWidth(); ++x) {
 		for (int y = 0; y < getHeight(); ++y) {
-			std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
-			int outsideLen = cellLen+(wallLen*2);
-			Cell* c = getCell(x, y);
-            
-			iw->fillRect(topLeft.first, topLeft.second, outsideLen, outsideLen, cell_colors[c->getVal()]);
-			if (c->north()) iw->fillRect(topLeft.first, topLeft.second, outsideLen, wallLen, COLOR_BLACK);
-			if (c->east()) iw->fillRect(topLeft.first + cellLen + wallLen, topLeft.second, wallLen, outsideLen, COLOR_BLACK);
-			if (c->south()) iw->fillRect(topLeft.first, topLeft.second + cellLen + wallLen, outsideLen, wallLen, COLOR_BLACK);
-			if (c->west()) iw->fillRect(topLeft.first, topLeft.second, wallLen, outsideLen, COLOR_BLACK);
-			iw->fillRect(topLeft.first, topLeft.second, wallLen, wallLen, COLOR_BLACK);
+			updateCellPixels(getCell(x,y));
 		}
 	}
 }
@@ -168,9 +266,13 @@ void Maze::startGif(const char* gifName) {
     GifBegin(gw, gifName, iw->getWidth(), iw->getHeight(), gifDelay);
 }
 
+void Maze::addFrame() {
+    GifWriteFrame(gw, iw->getData(), iw->getWidth(), iw->getHeight(), gifDelay);
+}
+
 void Maze::updateGif() {
     updateImage();
-    GifWriteFrame(gw, iw->getData(), iw->getWidth(), iw->getHeight(), gifDelay);
+    addFrame();
 }
 
 void Maze::endGif() {

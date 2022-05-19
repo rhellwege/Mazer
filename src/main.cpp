@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     // while ((opt) = getopt(argc, argv, "tttt") != -1)
     
     srand(seed);
-    Maze maze = Maze(20, 20);
+    Maze maze = Maze(50, 50);
     maze.genDFS();
     maze.solveBFS();
     return 0;

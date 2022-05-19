@@ -8,7 +8,7 @@ Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDel
     wallLen = _wallLen;
     cellLen = _cellLen;
 
-    gifDelay = gifDelay;
+    gifDelay = _gifDelay;
     saveGif = _saveGif;
 
     iw = new ImageWriter(w*(wallLen + cellLen) + wallLen, h*(wallLen + cellLen) + wallLen);

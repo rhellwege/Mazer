@@ -23,7 +23,9 @@ void printUsage() {
         <<"-h | height of cells the generated maze will have *(20 by default)*\n"
         <<"-r | choose the seed for random generation *(will change everytime by default)*\n"
         <<"-d | sets the delay of the gifs *in milliseconds*\n"
-        <<"-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*\n";
+        <<"-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*\n"
+        <<"-c | sets the width of each cell in pixels *(8 pixels by default)*\n"
+        <<"-l | sets the width of the walls *(2 pixels by default)*\n";
     exit(2);
 }
 
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
     std::string dir;
     
     int opt;
-    while ((opt = getopt(argc, argv, "g:s:nw:h:r:d:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "g:s:nw:h:r:d:o:c:l:")) != -1) {
         switch (opt) {
             case 'g':
                 generator = GEN_FUNCS[optarg];
@@ -76,6 +78,12 @@ int main(int argc, char** argv) {
                 break;
             case 'o':
                 dir = optarg;
+                break;
+            case 'c':
+                cellLen = atoi(optarg);
+                break;
+            case 'l':
+                wallLen = atoi(optarg);
                 break;
             default:
                 printUsage();

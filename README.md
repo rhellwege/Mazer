@@ -23,6 +23,8 @@ Arg | Purpose
 -r | choose the seed for random generation *(will change everytime by default)*
 -d | sets the delay of the gifs *in milliseconds*
 -o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
+-c | sets the width of each cell in pixels *(8 pixels by default)*
+-l | sets the width of the walls *(2 pixels by default)*
 
 ### Example commands:
 ```bash

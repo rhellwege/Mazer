@@ -24,10 +24,10 @@ void printUsage() {
         <<"-r | choose the seed for random generation *(will change everytime by default)*\n"
         <<"-d | sets the delay of the gifs *in milliseconds*\n"
         <<"-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*\n";
+    exit(2);
 }
 
 int main(int argc, char** argv) {
-    printUsage();
     std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS;
     GEN_FUNCS["dfs"] = &Maze::genDFS;
     GEN_FUNCS["kruskal"] = &Maze::genKruskal;
@@ -50,11 +50,37 @@ int main(int argc, char** argv) {
     unsigned int seed = time(NULL);
     std::string dir;
     
-
-    // int flags, opt;
-    // int nsecs, tfnd;
-
-    // while ((opt) = getopt(argc, argv, "tttt") != -1)
+    int opt;
+    while ((opt = getopt(argc, argv, "g:s:nw:h:r:d:o:")) != -1) {
+        switch (opt) {
+            case 'g':
+                generator = GEN_FUNCS[optarg];
+                break;
+            case 's':
+                solver = SOLVE_FUNCS[optarg];
+                break;
+            case 'n':
+                saveGif = false;
+                break;
+            case 'w':
+                width = atoi(optarg);
+                break;
+            case 'h':
+                height = atoi(optarg);
+                break;
+            case 'r':
+                seed = atoi(optarg);
+                break;
+            case 'd':
+                gifDelay = atoi(optarg);
+                break;
+            case 'o':
+                dir = optarg;
+                break;
+            default:
+                printUsage();
+        }
+    }
     
     srand(seed);
     Maze maze = Maze(width, height, cellLen, wallLen, saveGif, gifDelay);

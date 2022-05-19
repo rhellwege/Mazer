@@ -3,12 +3,6 @@
 #include "Cell.h"
 #include "ImageWriter.h"
 
-#define DEFAULT_WIDTH 20
-#define DEFAULT_HEIGHT 20
-#define DEFAULT_CELL_LEN 8
-#define DEFAULT_WALL_LEN 2
-#define DEFAULT_GIF_DELAY 10
-
 typedef struct
 {
     FILE* f;
@@ -31,7 +25,7 @@ private:
     void dfsGenHelper(Cell* c);
     
 public:
-    Maze(int w = DEFAULT_WIDTH, int h = DEFAULT_HEIGHT, int _wallLen = DEFAULT_WALL_LEN, int _cellLen = DEFAULT_CELL_LEN);
+    Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay);
 
     int getVal(int x, int y);
     int getWidth();

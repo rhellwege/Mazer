@@ -1,17 +1,18 @@
 #include "Maze.h"
 #include "../deps/gif.h"
 
-Maze::Maze(int w, int h, int _wallLen, int _cellLen) {
+Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay) {
     W = w;
     H = h;
     
     wallLen = _wallLen;
     cellLen = _cellLen;
+
+    gifDelay = gifDelay;
+    saveGif = _saveGif;
+
     iw = new ImageWriter(w*(wallLen + cellLen) + wallLen, h*(wallLen + cellLen) + wallLen);
     gw = new GifWriter;
-
-    saveGif = true;
-    gifDelay = DEFAULT_GIF_DELAY;
 
     for (int i = 0; i < w; ++i) {
         grid.push_back({});
@@ -57,7 +58,6 @@ void Maze::dfsGenHelper(Cell* c) {
         c->destroyBorder(nextCell);
         updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
         if (saveGif) {
-            
             addFrame();
         }
         dfsGenHelper(nextCell);
@@ -226,7 +226,6 @@ void Maze::updateCellPixels(Cell* c) {
 	if (c->south()) updateBorderPixels(c, 2, COLOR_BLACK);
 	if (c->west()) updateBorderPixels(c, 3, COLOR_BLACK);
 }
-
 
 void Maze::updateImage() {
 	// draw the cells:

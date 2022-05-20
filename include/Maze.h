@@ -13,6 +13,7 @@ typedef struct
 class Maze {
 private:
     std::vector<std::vector<Cell>> grid;
+    unsigned int seed;
     int W, H, cellLen, wallLen;
     Cell* start, *finish;
     const char* dir;
@@ -23,9 +24,12 @@ private:
 
     bool solveDFSHelper(Cell* c);
     void dfsGenHelper(Cell* c);
+
+    Cell* setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c);
+    void setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b);
     
 public:
-    Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay);
+    Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed);
 
     int getVal(int x, int y);
     int getWidth();

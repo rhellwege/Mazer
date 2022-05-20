@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <iostream>
+#include <random>
 #include <algorithm>
 #include <cmath>
 #include <queue>
@@ -10,3 +11,6 @@
 #include <unordered_map>
 #include <iterator>
 #include <string>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>

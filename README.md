@@ -28,10 +28,10 @@ Arg | Purpose
 
 ### Example commands:
 ```bash
-./mazer -w 10 -h 10 --generator DFS --solver DFS -o DFS/
+./mazer -w 10 -h 10 -g DFS -s DFS -o DFS/
 ```
 ```bash
-./mazer --generator kruskal --solver dijkstra -o ./
+./mazer -g kruskal -s dijkstra -o ./
 ```
 
 ## Output

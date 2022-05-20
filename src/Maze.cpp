@@ -1,12 +1,13 @@
 #include "Maze.h"
 #include "../deps/gif.h"
 
-Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay) {
+Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed) {
     W = w;
     H = h;
     
     wallLen = _wallLen;
     cellLen = _cellLen;
+    seed = _seed;
 
     gifDelay = _gifDelay;
     saveGif = _saveGif;
@@ -74,20 +75,48 @@ void Maze::genDFS() {
     //if (saveGif) endGif();
 }
 
-void Maze::genKruskal() {
-    // if (saveGif) startGif("maze-gen(kruskal).gif");
-    // std::set<pair<Cell*, Cell*>> edges;
-    // // load edges:
-    // for (int i = 0; i < W; ++i) {
-    //     for (int j = 0; j < H; ++j) {
-    //         if (i + 1 < W)
-    //             edges.insert(std::make_pair(&grid[i][j], &grid[]))
-    //     }
-    // }
+Cell* Maze::setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c) {
+    if (s[c] == c) return c;
+    return setFind(s, s[c]);
+}
 
-    // updateImage();
-    // saveImage("unsolved(kruskal).png");
-    // if (saveGif) endGif();
+void Maze::setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b) {
+    Cell* aParent = setFind(s, a);
+    Cell* bParent = setFind(s, b);
+    s[aParent] = bParent;
+}
+
+void Maze::genKruskal() {
+    if (saveGif) startGif("solve.gif");
+    std::vector<std::pair<Cell*, Cell*>> edges;
+    std::unordered_map<Cell*, Cell*> sets;
+    int wallsDown = 0;
+    for (int i = 0; i < W ; ++i) {
+        for (int j = 0; j < H; ++j) {
+            Cell* c = getCell(i, j);
+            sets[c] = c;
+            if (i < W - 1)
+                edges.push_back(std::make_pair(c, getCell(i + 1, j)));
+            if (j < H - 1)
+                edges.push_back(std::make_pair(c, getCell(i, j+1)));
+        }
+    }
+    //shuffle the edges:
+    std::shuffle(edges.begin(), edges.end(), std::default_random_engine{seed});
+    // kruskal
+    while (edges.size() && wallsDown < W*H-1) {
+        std::pair<Cell*, Cell*> cur = edges[edges.size()-1]; edges.pop_back();
+        if (setFind(sets, cur.first) != setFind(sets, cur.second)) {
+            setUnion(sets, cur.first, cur.second); // union the sets
+            cur.first->destroyBorder(cur.second);
+            updateBorderPixels(cur.first, cur.first->directionFromNeighbour(cur.second), COLOR_WHITE);
+            if (saveGif) addFrame();
+            wallsDown++;
+        }
+    }
+    if (!saveGif)
+        updateImage();
+    saveImage("unsolved(kruskal).png");
 }
 
 /* -------------------- SOLVERS -------------------- */

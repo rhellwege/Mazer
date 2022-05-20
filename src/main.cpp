@@ -1,6 +1,4 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "../include/common.h"
 #include "../include/Maze.h"
 
 #define DEFAULT_WIDTH 20
@@ -11,6 +9,17 @@
 #define DEFAULT_GIF_DELAY 10
 #define DEFAULT_GENERATOR "dfs"
 #define DEFAULT_SOLVER "dfs"
+
+std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS{
+    {"dfs", &Maze::genDFS},
+    {"kruskal", &Maze::genKruskal},
+    {"kruskals", &Maze::genKruskal}
+};
+
+std::unordered_map<std::string, void (Maze::*)(void)> SOLVE_FUNCS{
+    {"dfs", &Maze::solveDFS},
+    {"bfs", &Maze::solveBFS},
+};
 
 void printUsage() {
     std::cout << "Mazer Usage:\n"
@@ -30,15 +39,6 @@ void printUsage() {
 }
 
 int main(int argc, char** argv) {
-    std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS;
-    GEN_FUNCS["dfs"] = &Maze::genDFS;
-    GEN_FUNCS["kruskal"] = &Maze::genKruskal;
-    GEN_FUNCS["kruskals"] = &Maze::genKruskal;
-
-    std::unordered_map<std::string, void (Maze::*)(void)> SOLVE_FUNCS;
-    SOLVE_FUNCS["dfs"] = &Maze::solveDFS;
-    SOLVE_FUNCS["bfs"] = &Maze::solveBFS;
-
     int width = DEFAULT_WIDTH;
     int height = DEFAULT_HEIGHT;
     int cellLen = DEFAULT_CELL_LEN;
@@ -56,9 +56,11 @@ int main(int argc, char** argv) {
     while ((opt = getopt(argc, argv, "g:s:nw:h:r:d:o:c:l:")) != -1) {
         switch (opt) {
             case 'g':
+                if (GEN_FUNCS.find(optarg) == GEN_FUNCS.end()) printUsage();
                 generator = GEN_FUNCS[optarg];
                 break;
             case 's':
+                if (SOLVE_FUNCS.find(optarg) == SOLVE_FUNCS.end()) printUsage();
                 solver = SOLVE_FUNCS[optarg];
                 break;
             case 'n':
@@ -91,7 +93,7 @@ int main(int argc, char** argv) {
     }
     
     srand(seed);
-    Maze maze = Maze(width, height, cellLen, wallLen, saveGif, gifDelay);
+    Maze maze = Maze(width, height, cellLen, wallLen, saveGif, gifDelay, seed);
 
     (maze.*generator)();
     (maze.*solver)();

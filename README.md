@@ -63,8 +63,6 @@ Additionally a text file will be included with the seed of the generation so you
 
 ## TODO
 - [ ] getopt commandline options
-- [ ] Dijkstra
-- [ ] Astar
 - [ ] Add an option to seperate gifs into maze generation and solve
 - [ ] Make it so mazer can read a .ini file and run functions from input instead of commandline options
 - [ ] add timer?

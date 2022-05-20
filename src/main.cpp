@@ -19,6 +19,11 @@ std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS{
 std::unordered_map<std::string, void (Maze::*)(void)> SOLVE_FUNCS{
     {"dfs", &Maze::solveDFS},
     {"bfs", &Maze::solveBFS},
+    {"dijkstra", &Maze::solveDijkstra},
+    {"dijkstras", &Maze::solveDijkstra},
+    {"astar", &Maze::solveAStar},
+    {"a*", &Maze::solveAStar},
+    {"A*", &Maze::solveAStar}
 };
 
 void printUsage() {

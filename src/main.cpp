@@ -31,7 +31,7 @@ void printUsage() {
         <<"-g | generator algorithm *(DFS by default)*\n"
         <<"\tdfs\n\tkruskal\n"
         <<"-s | solving algorithm *(DFS by default)* \n"
-        <<"\tdfs\n\tbfs\n"
+        <<"\tdfs\n\tbfs\n\tdisjkstra\n\tastar\n"
         <<"-n | makes it so mazer doesnt save any gifs\n"
         <<"-w | width of cells the generated maze will have *(20 by default)*\n"
         <<"-h | height of cells the generated maze will have *(20 by default)*\n"

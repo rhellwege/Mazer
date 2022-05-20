@@ -187,8 +187,61 @@ void Maze::solveBFS() {
     if (saveGif) endGif();
 }
 
-void Maze::solveAStar() {
+int Maze::distCell(Cell* a, Cell* b) {
+    std::pair<int, int> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
+    return sqrt(diff.first*diff.first + diff.second*diff.second);
+}
 
+void Maze::solveAStar() {
+    std::unordered_map<Cell*, unsigned int> cost;
+    std::unordered_map<Cell*, Cell*> prev;
+    std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
+    cost[start] = 0 + distCell(start, finish);
+    for (int i = 0; i < W ; ++i) {
+        for (int j = 0; j < H; ++j) {
+            Cell* c = getCell(i, j);
+            if (c != start) {
+                cost[c] = INT_MAX;
+                //prev[c] = nullptr;
+            }
+            //pq.push(std::make_pair(cost[c], c));
+        }
+    }
+    pq.push(std::make_pair(0, start));
+    while (!pq.empty()) {
+        Cell* u = pq.top().second;
+        if (u == finish) {
+            break;
+        }
+        if (u != start)
+            u->setVal(CELL_WASTED);
+        if (saveGif) {
+            updateCellCol(u);
+            addFrame();
+        }
+        pq.pop();
+        std::vector<Cell*> neighbours = u->accessibleNeighbours();
+        for (auto v : neighbours) {
+            if (cost[v] > cost[u] + distCell(u, finish)) {
+                cost[v] = cost[u] + distCell(u, finish);
+                prev[v] = u;
+                pq.push(std::make_pair(cost[v], v));
+            }
+        }
+    }
+    // color path
+    Cell* cur = prev[finish];
+    while (cur != start) {
+        cur->setVal(CELL_PATH);
+        if (saveGif) {
+            updateCellCol(cur);
+            addFrame();
+        }
+        cur = prev[cur];
+    }
+    if (!saveGif) updateImage();
+    saveImage("solved(AStar).png");
+    if (saveGif) endGif();
 }
 
 void Maze::solveDijkstra() {

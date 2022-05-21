@@ -1,6 +1,10 @@
 # Mazer
 A minimalist commandline interface maze generator and solver. Note that all mazes generated are true traditional mazes where each cell is visited once. This was created as part of a project for Professor Nadia Ahmed's CS1D class to demonstrate path finding algorithims.
 
+## How to download
+- You can download the release.zip from the releases tab
+- You can run ```git clone "https://github.com/rhellwege/Mazer.git"```
+
 ## How to build
 ### Linux
 1. install make and gcc with brew if they aren't installed already ```sudo apt install gcc make``` or ```sudo pacman -S g++ make```
@@ -59,7 +63,7 @@ Additionally a text file will be included with the seed of the generation so you
 
 ## Algorithms:
 ### Generation:
-#### dfs
+#### DFS
 ```c++
 void Maze::dfsGenHelper(Cell* c) {
     if (c->seen()) return;
@@ -84,7 +88,7 @@ void Maze::genDFS() {
         updateImage();
 }
 ```
-#### kruskal
+#### Kruskal
 ```c++
 Cell* Maze::setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c) {
     if (s[c] == c) return c;
@@ -131,7 +135,7 @@ void Maze::genKruskal() {
 ```
 
 ### Solving:
-#### dfs
+#### DFS
 ```c++
 bool Maze::solveDFSHelper(Cell* c) {
     if (c == finish) return true;
@@ -161,7 +165,7 @@ void Maze::solveDFS() {
     if (saveGif) endGif();
 }
 ```
-#### bfs
+#### BFS
 ```c++
 void Maze::solveBFS() {
     if (saveGif) startGif((dir +"solve(BFS).gif").c_str());
@@ -198,7 +202,7 @@ void Maze::solveBFS() {
     if (saveGif) endGif();
 }
 ```
-#### dijkstra
+#### Dijkstra
 ```c++
 void Maze::solveDijkstra() {
     if (saveGif) startGif((dir + "solve(Dijkstra).gif").c_str());

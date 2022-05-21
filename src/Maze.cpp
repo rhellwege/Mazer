@@ -72,8 +72,6 @@ void Maze::genDFS() {
     dfsGenHelper(start);
     if (!saveGif)
         updateImage();
-    //saveImage("unsolved(DFS).png");
-    //if (saveGif) endGif();
 }
 
 Cell* Maze::setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c) {
@@ -117,13 +115,9 @@ void Maze::genKruskal() {
     }
     if (!saveGif)
         updateImage();
-    //saveImage("unsolved(kruskal).png");
 }
 
 /* -------------------- SOLVERS -------------------- */
-
-
-
 bool Maze::solveDFSHelper(Cell* c) {
     if (c == finish) return true;
     if (c->getVal() == CELL_PATH) return false;
@@ -148,9 +142,7 @@ bool Maze::solveDFSHelper(Cell* c) {
 void Maze::solveDFS() {
     if (saveGif) startGif((dir + "solve(DFS).gif").c_str());
     solveDFSHelper(start);
-    //updateImage();
     if (!saveGif) updateImage();
-    //saveImage("solved(DFS).png");
     if (saveGif) endGif();
 } 
 
@@ -186,7 +178,6 @@ void Maze::solveBFS() {
         }
     }
     if (!saveGif) updateImage();
-    //saveImage("solved(BFS).png");
     if (saveGif) endGif();
 }
 
@@ -206,9 +197,7 @@ void Maze::solveAStar() {
             Cell* c = getCell(i, j);
             if (c != start) {
                 cost[c] = INT_MAX;
-                //prev[c] = nullptr;
             }
-            //pq.push(std::make_pair(cost[c], c));
         }
     }
     pq.push(std::make_pair(0, start));
@@ -244,7 +233,6 @@ void Maze::solveAStar() {
         cur = prev[cur];
     }
     if (!saveGif) updateImage();
-    //saveImage("solved(AStar).png");
     if (saveGif) endGif();
 }
 
@@ -259,9 +247,7 @@ void Maze::solveDijkstra() {
             Cell* c = getCell(i, j);
             if (c != start) {
                 distance[c] = INT_MAX;
-                //prev[c] = nullptr;
             }
-            //pq.push(std::make_pair(distance[c], c));
         }
     }
     pq.push(std::make_pair(0, start));
@@ -298,7 +284,6 @@ void Maze::solveDijkstra() {
         cur = prev[cur];
     }
     if (!saveGif) updateImage();
-    //saveImage("solved(Dijkstra).png");
     if (saveGif) endGif();
 }
 

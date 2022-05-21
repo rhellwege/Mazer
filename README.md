@@ -57,7 +57,7 @@ Additionally a text file will be included with the seed of the generation so you
 1. For png writing I used [stb](https://github.com/nothings/stb)
 2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
 
-## Algorithims:
+## Algorithms:
 ### Generation:
 #### dfs
 ```c++

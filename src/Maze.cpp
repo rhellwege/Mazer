@@ -181,16 +181,16 @@ void Maze::solveBFS() {
     if (saveGif) endGif();
 }
 
-int Maze::distCell(Cell* a, Cell* b) {
-    std::pair<int, int> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
+double Maze::distCell(Cell* a, Cell* b) {
+    std::pair<double, double> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
     return sqrt(diff.first*diff.first + diff.second*diff.second);
 }
 
 void Maze::solveAStar() {
     if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
-    std::unordered_map<Cell*, unsigned int> cost;
+    std::unordered_map<Cell*, double> cost;
     std::unordered_map<Cell*, Cell*> prev;
-    std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
+    std::priority_queue<std::pair<double, Cell*>, std::vector<std::pair<double, Cell*>>, std::greater<std::pair<double, Cell*>>> pq;
     cost[start] = 0 + distCell(start, finish);
     for (int i = 0; i < W ; ++i) {
         for (int j = 0; j < H; ++j) {

@@ -22,7 +22,7 @@ Arg | Purpose
 -h | height of cells the generated maze will have *(20 by default)*
 -r | choose the seed for random generation *(will change everytime by default)*
 -d | sets the delay of the gifs *in milliseconds*
--o | specifies the directory mazer will output pictures and gifs to *(./ by default)*
+-o | specifies the directory mazer will output pictures and gifs to *(Mazer_output/ by default)*
 -c | sets the width of each cell in pixels *(8 pixels by default)*
 -l | sets the width of the walls *(2 pixels by default)*
 
@@ -44,18 +44,14 @@ Each generated image is color coded.
 >   but is not included in the final path.
 > *Green* represents the starting cell, and **Red** represents the ending cell.
 
-The directory will include two png files
-> solved.png + unsolved.png. 
-
-On top of that there will be two gifs generated: 
->mazegen.gif + solve.gif
+The directory will include two png files (generation and solve) as well as two gifs
 
 Additionally a text file will be included with the seed of the generation so you can reuse it for testing.
 
 ![Unsolved](Mazer_output/kruskal-gen.png)
 ![Solved](Mazer_output/astar-solve.png)
 ![Maze Generation Gif](Mazer_output/gen(kruskal).gif)
-![Maze Solve Gif](Mazer_output/solve(astar).gif)
+![Maze Solve Gif](Mazer_output/solve(Astar).gif)
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)
@@ -257,16 +253,16 @@ void Maze::solveDijkstra() {
 ```
 #### A*
 ```c++
-int Maze::distCell(Cell* a, Cell* b) {
-    std::pair<int, int> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
+double Maze::distCell(Cell* a, Cell* b) {
+    std::pair<double, double> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
     return sqrt(diff.first*diff.first + diff.second*diff.second);
 }
 
 void Maze::solveAStar() {
     if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
-    std::unordered_map<Cell*, unsigned int> cost;
+    std::unordered_map<Cell*, double> cost;
     std::unordered_map<Cell*, Cell*> prev;
-    std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
+    std::priority_queue<std::pair<double, Cell*>, std::vector<std::pair<double, Cell*>>, std::greater<std::pair<double, Cell*>>> pq;
     cost[start] = 0 + distCell(start, finish);
     for (int i = 0; i < W ; ++i) {
         for (int j = 0; j < H; ++j) {

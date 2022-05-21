@@ -1,10 +1,10 @@
 Generator: kruskal
-Solver: astar
+Solver: dijkstra
 
 Width: 20
 Height: 20
 
 Seed: 1
 
-Generation time: 0.284990
-Solve time: 0.011451
+Generation time: 0.316233
+Solve time: 0.011774

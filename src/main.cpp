@@ -39,7 +39,7 @@ void printUsage() {
         <<"-h | height of cells the generated maze will have *(20 by default)*\n"
         <<"-r | choose the seed for random generation *(will change everytime by default)*\n"
         <<"-d | sets the delay of the gifs *in milliseconds*\n"
-        <<"-o | specifies the directory mazer will output pictures and gifs to *(./ by default)*\n"
+        <<"-o | specifies the directory mazer will output pictures and gifs to *(Mazer_output/ by default)*\n"
         <<"-c | sets the width of each cell in pixels *(8 pixels by default)*\n"
         <<"-l | sets the width of the walls *(2 pixels by default)*\n";
     exit(2);

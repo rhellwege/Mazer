@@ -34,7 +34,7 @@ public:
     int getVal(int x, int y);
     int getWidth();
     int getHeight();
-    int distCell(Cell* a, Cell* b);
+    double distCell(Cell* a, Cell* b);
     Cell* getCell(int x, int y);
 
     void genDFS();

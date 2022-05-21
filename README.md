@@ -54,8 +54,8 @@ Additionally a text file will be included with the seed of the generation so you
 
 ![Unsolved](Mazer_output/kruskal-gen.png)
 ![Solved](Mazer_output/astar-solve.png)
-![Maze Generation Gif](gen(kruskal).gif)
-![Maze Solve Gif](solve(astar).gif)
+![Maze Generation Gif](Mazer_output/gen(kruskal).gif)
+![Maze Solve Gif](Mazer_output/solve(astar).gif)
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)

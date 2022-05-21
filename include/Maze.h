@@ -16,7 +16,7 @@ private:
     unsigned int seed;
     int W, H, cellLen, wallLen;
     Cell* start, *finish;
-    const char* dir;
+    std::string dir;
     GifWriter* gw;
     int gifDelay;
     bool saveGif;
@@ -29,7 +29,7 @@ private:
     void setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b);
     
 public:
-    Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed);
+    Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed, std::string _dir);
 
     int getVal(int x, int y);
     int getWidth();
@@ -56,5 +56,4 @@ public:
     void updateBorderPixels(Cell* c, int direction, RGBA col);
     void updateCellPixels(Cell* c);
     void saveImage(const char* imgName);
-
 };

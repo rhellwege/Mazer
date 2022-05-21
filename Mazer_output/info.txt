@@ -1,0 +1,10 @@
+Generator: kruskal
+Solver: astar
+
+Width: 50
+Height: 50
+
+Seed: 1653159291
+
+Generation time: 8.676508
+Solve time: 0.083800

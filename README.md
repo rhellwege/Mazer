@@ -52,10 +52,10 @@ On top of that there will be two gifs generated:
 
 Additionally a text file will be included with the seed of the generation so you can reuse it for testing.
 
-![Unsolved](unsolved.png)
-![Solved](solved.png)
-![Maze Generation Gif](maze-gen.gif)
-![Maze Solve Gif](solve.gif)
+![Unsolved](Mazer_output/kruskal-gen.png)
+![Solved](Mazer_output/astar-solve.png)
+![Maze Generation Gif](gen(kruskal).gif)
+![Maze Solve Gif](solve(astar).gif)
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)

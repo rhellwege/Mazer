@@ -1,7 +1,7 @@
 #include "Maze.h"
 #include "../deps/gif.h"
 
-Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed) {
+Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed, std::string _dir) {
     W = w;
     H = h;
     
@@ -11,6 +11,8 @@ Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDel
 
     gifDelay = _gifDelay;
     saveGif = _saveGif;
+
+    dir = _dir;
 
     iw = new ImageWriter(w*(wallLen + cellLen) + wallLen, h*(wallLen + cellLen) + wallLen);
     gw = new GifWriter;
@@ -49,7 +51,6 @@ Cell* Maze::getCell(int x, int y) {
 }
 
 /* -------------------- GENERATORS -------------------- */
-
 void Maze::dfsGenHelper(Cell* c) {
     if (c->seen()) return;
     c->visit();
@@ -67,11 +68,11 @@ void Maze::dfsGenHelper(Cell* c) {
 }
 
 void Maze::genDFS() {
-    if (saveGif) startGif("solve.gif");
+    if (saveGif) startGif((dir + "gen(dfs).gif").c_str());
     dfsGenHelper(start);
     if (!saveGif)
         updateImage();
-    saveImage("unsolved(DFS).png");
+    //saveImage("unsolved(DFS).png");
     //if (saveGif) endGif();
 }
 
@@ -87,7 +88,7 @@ void Maze::setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b) {
 }
 
 void Maze::genKruskal() {
-    if (saveGif) startGif("solve.gif");
+    if (saveGif) startGif((dir + "gen(kruskal).gif").c_str());
     std::vector<std::pair<Cell*, Cell*>> edges;
     std::unordered_map<Cell*, Cell*> sets;
     int wallsDown = 0;
@@ -116,10 +117,12 @@ void Maze::genKruskal() {
     }
     if (!saveGif)
         updateImage();
-    saveImage("unsolved(kruskal).png");
+    //saveImage("unsolved(kruskal).png");
 }
 
 /* -------------------- SOLVERS -------------------- */
+
+
 
 bool Maze::solveDFSHelper(Cell* c) {
     if (c == finish) return true;
@@ -143,16 +146,16 @@ bool Maze::solveDFSHelper(Cell* c) {
 }
 
 void Maze::solveDFS() {
-    //if (saveGif) startGif("solve(DFS).gif");
+    if (saveGif) startGif((dir + "solve(DFS).gif").c_str());
     solveDFSHelper(start);
     //updateImage();
     if (!saveGif) updateImage();
-    saveImage("solved(DFS).png");
+    //saveImage("solved(DFS).png");
     if (saveGif) endGif();
 } 
 
 void Maze::solveBFS() {
-    //if (saveGif) startGif("solve(BFS).gif");
+    if (saveGif) startGif((dir +"solve(BFS).gif").c_str());
     std::queue<Cell*> q;
     std::unordered_map<Cell*, Cell*> path;
     Cell* current = start;
@@ -183,7 +186,7 @@ void Maze::solveBFS() {
         }
     }
     if (!saveGif) updateImage();
-    saveImage("solved(BFS).png");
+    //saveImage("solved(BFS).png");
     if (saveGif) endGif();
 }
 
@@ -193,6 +196,7 @@ int Maze::distCell(Cell* a, Cell* b) {
 }
 
 void Maze::solveAStar() {
+    if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
     std::unordered_map<Cell*, unsigned int> cost;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
@@ -240,11 +244,12 @@ void Maze::solveAStar() {
         cur = prev[cur];
     }
     if (!saveGif) updateImage();
-    saveImage("solved(AStar).png");
+    //saveImage("solved(AStar).png");
     if (saveGif) endGif();
 }
 
 void Maze::solveDijkstra() {
+    if (saveGif) startGif((dir + "solve(Dijkstra).gif").c_str());
     std::unordered_map<Cell*, unsigned int> distance;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
@@ -293,7 +298,7 @@ void Maze::solveDijkstra() {
         cur = prev[cur];
     }
     if (!saveGif) updateImage();
-    saveImage("solved(Dijkstra).png");
+    //saveImage("solved(Dijkstra).png");
     if (saveGif) endGif();
 }
 

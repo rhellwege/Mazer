@@ -1,0 +1,11 @@
+Generator: dfs
+Solver: dijkstra
+
+Width: 20
+Height: 20
+
+Seed: 1
+
+Generation time: 0.268252
+Solve time: 0.011181
+Solve Steps: 216

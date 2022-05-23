@@ -20,7 +20,7 @@ std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS{
     {"prims", &Maze::genPrims}
 };
 
-std::unordered_map<std::string, void (Maze::*)(void)> SOLVE_FUNCS{
+std::unordered_map<std::string, int (Maze::*)(void)> SOLVE_FUNCS{
     {"dfs", &Maze::solveDFS},
     {"bfs", &Maze::solveBFS},
     {"dijkstra", &Maze::solveDijkstra},
@@ -56,13 +56,15 @@ int main(int argc, char** argv) {
     int gifDelay = DEFAULT_GIF_DELAY;
 
     void(Maze::*generator)(void) = GEN_FUNCS[DEFAULT_GENERATOR];
-    void(Maze::*solver)(void) = SOLVE_FUNCS[DEFAULT_SOLVER];
+    int(Maze::*solver)(void) = SOLVE_FUNCS[DEFAULT_SOLVER];
     std::string s_gen = DEFAULT_GENERATOR;
     std::string s_solve = DEFAULT_SOLVER;
 
     unsigned int seed = time(NULL);
     std::string dir = DEFAULT_DIR;
     if (dir[dir.size()-1] != '/') dir+="/";
+
+    int solveSteps = 0;
     
     int opt;
     while ((opt = getopt(argc, argv, "g:s:nw:h:r:d:o:c:l:")) != -1) {
@@ -114,7 +116,7 @@ int main(int argc, char** argv) {
     auto t1 = std::chrono::steady_clock::now();
     maze.saveImage((dir + s_gen  + "-gen.png").c_str());
     auto t2 = std::chrono::steady_clock::now(); 
-    (maze.*solver)();
+    solveSteps = (maze.*solver)();
     auto t3 = std::chrono::steady_clock::now();
     maze.saveImage((dir + s_solve  + "-solve.png").c_str());
 
@@ -122,10 +124,10 @@ int main(int argc, char** argv) {
     double elapsed_solve = double(std::chrono::duration_cast<std::chrono::nanoseconds> (t2 - t1).count()) / 1e9;
 
     std::cout << s_gen << " Generation took " << elapsed_gen << " seconds to complete.\n";
-    std::cout << s_solve << " Solve took " << elapsed_solve << " seconds to complete.\n";
+    std::cout << s_solve << " Solve took " << elapsed_solve << " seconds to complete.\nand " << solveSteps << " steps.\n";
 
     FILE* f_ptr = fopen((dir + "info.txt").c_str(), "w");
-    fprintf(f_ptr, "Generator: %s\nSolver: %s\n\nWidth: %i\nHeight: %i\n\nSeed: %i\n\nGeneration time: %f\nSolve time: %f", s_gen.c_str(), s_solve.c_str(), width, height, seed, elapsed_gen, elapsed_solve);
+    fprintf(f_ptr, "Generator: %s\nSolver: %s\n\nWidth: %i\nHeight: %i\n\nSeed: %i\n\nGeneration time: %f\nSolve time: %f\nSolve Steps: %i", s_gen.c_str(), s_solve.c_str(), width, height, seed, elapsed_gen, elapsed_solve, solveSteps);
     fclose(f_ptr);
     return 0;
 }

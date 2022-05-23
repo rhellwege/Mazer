@@ -35,7 +35,7 @@ Arg | Purpose
 ./mazer -w 10 -h 10 -g dfs -s bfs -o dfs-bfs_test/
 ```
 ```bash
-./mazer -g kruskal -s dijkstra -o ./
+./mazer -g prims -w 50 -h 50 -c 1 -l 1 -s astar -r 1
 ```
 
 ## Supported Algorithms:

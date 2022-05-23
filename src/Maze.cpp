@@ -172,7 +172,8 @@ void Maze::genPrims() {
 
 
 /* -------------------- SOLVERS -------------------- */
-bool Maze::solveDFSHelper(Cell* c) {
+bool Maze::solveDFSHelper(Cell* c, int& steps) {
+    ++steps;
     if (c == finish) return true;
     if (c->getVal() == CELL_PATH) return false;
     if (c != start)
@@ -183,7 +184,7 @@ bool Maze::solveDFSHelper(Cell* c) {
     }
     std::vector<Cell*> accessible = c->accessibleNeighbours();
     for (auto n : accessible) 
-        if (solveDFSHelper(n)) return true;
+        if (solveDFSHelper(n, steps)) return true;
     if (c != start)
         c->setVal(CELL_WASTED);
     if (saveGif) {
@@ -193,14 +194,17 @@ bool Maze::solveDFSHelper(Cell* c) {
     return false;
 }
 
-void Maze::solveDFS() {
+int Maze::solveDFS() {
+    int steps = 0;
     if (saveGif) startGif((dir + "solve(DFS).gif").c_str());
-    solveDFSHelper(start);
+    solveDFSHelper(start, steps);
     if (!saveGif) updateImage();
     if (saveGif) endGif();
+    return steps;
 } 
 
-void Maze::solveBFS() {
+int Maze::solveBFS() {
+    int steps;
     if (saveGif) startGif((dir +"solve(BFS).gif").c_str());
     std::queue<Cell*> q;
     std::unordered_map<Cell*, Cell*> path;
@@ -209,6 +213,7 @@ void Maze::solveBFS() {
         
         if (current != start)
             current->setVal(CELL_WASTED);
+        ++steps;
         if (saveGif) {
             updateCellCol(current);
             addFrame();
@@ -233,6 +238,7 @@ void Maze::solveBFS() {
     }
     if (!saveGif) updateImage();
     if (saveGif) endGif();
+    return steps;
 }
 
 double Maze::distCell(Cell* a, Cell* b) {
@@ -240,7 +246,8 @@ double Maze::distCell(Cell* a, Cell* b) {
     return sqrt(diff.first*diff.first + diff.second*diff.second);
 }
 
-void Maze::solveAStar() {
+int Maze::solveAStar() {
+    int steps = 0;
     if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
     std::unordered_map<Cell*, double> cost;
     std::unordered_map<Cell*, Cell*> prev;
@@ -262,6 +269,7 @@ void Maze::solveAStar() {
         }
         if (u != start)
             u->setVal(CELL_WASTED);
+        ++steps;
         if (saveGif) {
             updateCellCol(u);
             addFrame();
@@ -288,10 +296,12 @@ void Maze::solveAStar() {
     }
     if (!saveGif) updateImage();
     if (saveGif) endGif();
+    return steps;
 }
 
-void Maze::solveDijkstra() {
+int Maze::solveDijkstra() {
     if (saveGif) startGif((dir + "solve(Dijkstra).gif").c_str());
+    int steps = 0;
     std::unordered_map<Cell*, unsigned int> distance;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
@@ -316,6 +326,7 @@ void Maze::solveDijkstra() {
             updateCellCol(u);
             addFrame();
         }
+        ++steps;
         pq.pop();
         std::vector<Cell*> neighbours = u->accessibleNeighbours();
         for (auto v : neighbours) {
@@ -339,6 +350,7 @@ void Maze::solveDijkstra() {
     }
     if (!saveGif) updateImage();
     if (saveGif) endGif();
+    return steps;
 }
 
 // image

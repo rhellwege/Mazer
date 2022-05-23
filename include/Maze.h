@@ -22,7 +22,7 @@ private:
     bool saveGif;
     ImageWriter* iw;
 
-    bool solveDFSHelper(Cell* c);
+    bool solveDFSHelper(Cell* c, int& steps);
     void dfsGenHelper(Cell* c);
 
     Cell* setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c);
@@ -41,10 +41,11 @@ public:
     void genKruskal();
     void genPrims();
     
-    void solveDFS();
-    void solveBFS();
-    void solveAStar();
-    void solveDijkstra();
+    // solvers return the amount of steps taken until it found the end (this includes the back tracking)
+    int solveDFS();
+    int solveBFS();
+    int solveAStar();
+    int solveDijkstra();
 
     void startGif(const char* gifName);
     void updateGif();

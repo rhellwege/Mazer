@@ -15,7 +15,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 $(ODIR)/%.o: $(SRC)%.cpp $(DEPS)
 	@mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
-
+ 
 $(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 

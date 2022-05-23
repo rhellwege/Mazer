@@ -15,7 +15,9 @@
 std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS{
     {"dfs", &Maze::genDFS},
     {"kruskal", &Maze::genKruskal},
-    {"kruskals", &Maze::genKruskal}
+    {"kruskals", &Maze::genKruskal},
+    {"prim", &Maze::genPrims},
+    {"prims", &Maze::genPrims}
 };
 
 std::unordered_map<std::string, void (Maze::*)(void)> SOLVE_FUNCS{
@@ -92,8 +94,6 @@ int main(int argc, char** argv) {
                 break;
             case 'o':
                 dir = optarg;
-                mode_t m;
-                mkdir(dir.c_str(), m);
                 break;
             case 'c':
                 cellLen = atoi(optarg);
@@ -105,7 +105,8 @@ int main(int argc, char** argv) {
                 printUsage();
         }
     }
-    
+    //mode_t m;
+    mkdir(dir.c_str(), 0755);
     srand(seed);
     Maze maze = Maze(width, height, cellLen, wallLen, saveGif, gifDelay, seed, dir);
     auto t0 = std::chrono::steady_clock::now();

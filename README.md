@@ -38,6 +38,17 @@ Arg | Purpose
 ./mazer -g kruskal -s dijkstra -o ./
 ```
 
+## Supported Algorithms:
+### Generating:
+1. DFS
+2. Kruskal
+3. Prim's
+### Solving:
+1. DFS
+2. BFS
+3. Dijkstra
+4. A*
+
 ## Output
 Each generated image is color coded.
 
@@ -131,6 +142,60 @@ void Maze::genKruskal() {
     }
     if (!saveGif)
         updateImage();
+}
+```
+
+#### Prim's
+```c++
+void addFrontier(Cell* c, std::deque<Cell*>& frontier, std::unordered_set<Cell*>& fset) {
+    if (fset.find(c) != fset.end()) {
+        printf("already in fset.\n");
+        return;
+    }
+    frontier.push_back(c);
+    fset.insert(c);
+}
+
+void addMst(Cell* c, int idx, std::deque<Cell*>& frontier, std::unordered_set<Cell*>& fset, std::unordered_set<Cell*>& mst) {
+    if (mst.find(c) != mst.end()) return;
+    if (fset.find(c) != fset.end())
+        fset.erase(c);
+    if (idx != -1) {
+        frontier.erase(frontier.begin() + idx);
+    }
+    mst.insert(c);
+    std::vector<Cell*> neighbours = c->unvisitedNeighbours();
+    for (auto n : neighbours) {
+        if (fset.find(n) == fset.end()) {
+            addFrontier(n, frontier, fset);
+        }
+    }
+
+}
+
+void Maze::genPrims() {
+    if (saveGif) startGif((dir + "gen(prims).gif").c_str());
+    std::unordered_set<Cell*> mst; // minimal spanning tree
+    std::deque<Cell*> frontier; // all cells adjacent to the mst
+    std::unordered_set<Cell*> fset;
+    addMst(start, -1, frontier, fset, mst);
+    start->visit();
+    while (frontier.size()) {
+        // choose random frontier
+        int idx = rand() % frontier.size();
+        Cell* c = frontier[idx];
+        addMst(c, idx, frontier, fset, mst);
+        // destroy the walls of one of the adjacent mst nodes (at random)
+        c->visit();
+        std::vector<Cell*> ins = c->visitedNeighbours();
+        Cell* neighbour = ins[rand() % ins.size()];
+        c->destroyBorder(neighbour);
+        updateBorderPixels(c, c->directionFromNeighbour(neighbour), COLOR_WHITE);
+        if (saveGif) addFrame();
+    }
+    if (!saveGif)
+        updateImage();
+    if (saveGif) endGif();
 }
 ```
 

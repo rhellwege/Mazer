@@ -39,6 +39,7 @@ public:
 
     void genDFS();
     void genKruskal();
+    void genPrims();
     
     void solveDFS();
     void solveBFS();

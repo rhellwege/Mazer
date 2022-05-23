@@ -7,7 +7,6 @@ Cell::Cell(int _x, int _y, int _w, int _h, int _val, std::vector<std::vector<Cel
     h = _h;
     val = _val;
     grid = _grid;
-    neighbourIdx = 0;
     visited = false;
     for (int i = 0; i < 4; ++i) walls[i] = true;
 }
@@ -104,6 +103,39 @@ std::vector<Cell*> Cell::accessibleNeighbours() {
         int newX = x+order[i][0];
         int newY = y+order[i][1];
         if (inBounds(newX, newY) && !walls[i])
+            v.push_back(&(*grid)[newX][newY]);
+    }
+    return v;
+}
+
+std::vector<Cell*> Cell::allNeighbours() {
+    std::vector<Cell*> v;
+    for (int i = 0; i < 4; ++i) {
+        int newX = x+order[i][0];
+        int newY = y+order[i][1];
+        if (inBounds(newX, newY))
+            v.push_back(&(*grid)[newX][newY]);
+    }
+    return v;
+}
+
+std::vector<Cell*> Cell::unvisitedNeighbours() {
+    std::vector<Cell*> v;
+    for (int i = 0; i < 4; ++i) {
+        int newX = x+order[i][0];
+        int newY = y+order[i][1];
+        if (inBounds(newX, newY) && !(*grid)[newX][newY].seen())
+            v.push_back(&(*grid)[newX][newY]);
+    }
+    return v;
+}
+
+std::vector<Cell*> Cell::visitedNeighbours() {
+    std::vector<Cell*> v;
+    for (int i = 0; i < 4; ++i) {
+        int newX = x+order[i][0];
+        int newY = y+order[i][1];
+        if (inBounds(newX, newY) && (*grid)[newX][newY].seen())
             v.push_back(&(*grid)[newX][newY]);
     }
     return v;

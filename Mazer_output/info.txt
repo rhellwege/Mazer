@@ -1,10 +1,10 @@
-Generator: kruskal
-Solver: dijkstra
+Generator: prim
+Solver: dfs
 
 Width: 20
 Height: 20
 
-Seed: 1
+Seed: 1653284400
 
-Generation time: 0.316233
-Solve time: 0.011774
+Generation time: 0.339349
+Solve time: 0.011524

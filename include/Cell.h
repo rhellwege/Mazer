@@ -13,7 +13,6 @@ class Cell {
 private:
     int x, y, w, h, val;
     bool visited;
-    int neighbourIdx;
     bool walls[4];
     std::vector<std::vector<Cell>>* grid;
 
@@ -37,4 +36,8 @@ public:
     void destroyBorder(Cell* other);
     Cell* randomNeighbour();
     std::vector<Cell*> accessibleNeighbours();
+    std::vector<Cell*> allNeighbours();
+    std::vector<Cell*> unvisitedNeighbours();
+    std::vector<Cell*> visitedNeighbours();
+
 };

@@ -1,0 +1,11 @@
+Generator: kruskal
+Solver: astar
+
+Width: 20
+Height: 20
+
+Seed: 1
+
+Generation time: 0.264510
+Solve time: 0.011079
+Solve Steps: 233

@@ -13,7 +13,7 @@ A minimalist commandline interface maze generator and solver. Note that all maze
 1. install make and gcc with brew if they aren't installed already ```brew install gcc make```
 2. build with the command ```make```
 ### Windows
-Unfortunately this project is currently not buildable on windows, however you can use Windows Subsystem for Linux (wsl) [wsl](https://docs.microsoft.com/en-us/windows/wsl/install)
+Unfortunately this project is currently not buildable on windows, however you can use Windows Subsystem for Linux [(wsl)](https://docs.microsoft.com/en-us/windows/wsl/install)
 ## How to run
 run mazer in the commandline with options
 

@@ -71,7 +71,7 @@ Additionally a text file will be included with the seed of the generation so you
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)
 2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
-3. This [blog](https://weblog.jamisbuck.org/) was really useful for understanding the maze generation algorithims
+3. This [blog](https://weblog.jamisbuck.org/) was really useful for understanding the maze generation algorithms
 
 ## Algorithms:
 > All of the following code is taken directly from the project but has gif writing and image updating removed, and no step counting. If you want to see the methods, look at Maze.cpp starting from line 52 onwards.

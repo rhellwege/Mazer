@@ -28,8 +28,6 @@ Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDel
     finish = &grid[W/2][H-1];
     start->setVal(CELL_START);
     finish->setVal(CELL_FINISH);
-    start->destroyWall(0);
-    finish->destroyWall(2);
     imgSetup();
     updateImage();
 }
@@ -170,7 +168,6 @@ void Maze::genPrims() {
     if (saveGif) endGif();
 }
 
-
 /* -------------------- SOLVERS -------------------- */
 bool Maze::solveDFSHelper(Cell* c, int& steps) {
     ++steps;
@@ -257,7 +254,7 @@ int Maze::solveAStar() {
         for (int j = 0; j < H; ++j) {
             Cell* c = getCell(i, j);
             if (c != start) {
-                cost[c] = INT_MAX;
+                cost[c] = DBL_MAX;
             }
         }
     }
@@ -356,7 +353,7 @@ int Maze::solveDijkstra() {
 // image
 
 void Maze::updateBorderPixels(Cell* c, int direction, RGBA col) {
-    int x = c->getX();
+    int x = c->getX(); 
     int y = c->getY();
     std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
     switch  (direction) {
@@ -401,19 +398,23 @@ void Maze::updateCellCol(Cell* c) { // only updates pixels that arent border
     std::pair<int, int> tl = topLeft;
 
     iw->fillRect(topLeft.first + wallLen, topLeft.second + wallLen, cellLen, cellLen, col);
-    if (!c->north()) updateBorderPixels(c, 0, col);
-    if (!c->east()) updateBorderPixels(c, 1, col);
-    if (!c->south()) updateBorderPixels(c, 2, col);
-    if (!c->west()) updateBorderPixels(c, 3, col);
+    if (!c->getWall(NORTH)) updateBorderPixels(c, 0, col);
+    if (!c->getWall(EAST)) updateBorderPixels(c, 1, col);
+    if (!c->getWall(SOUTH)) updateBorderPixels(c, 2, col);
+    if (!c->getWall(WEST)) updateBorderPixels(c, 3, col);
 }
 
 void Maze::updateCellPixels(Cell* c) {
     updateCellCol(c);
 
-	if (c->north()) updateBorderPixels(c, 0, COLOR_BLACK);
-	if (c->east()) updateBorderPixels(c, 1, COLOR_BLACK);
-	if (c->south()) updateBorderPixels(c, 2, COLOR_BLACK);
-	if (c->west()) updateBorderPixels(c, 3, COLOR_BLACK);
+	if (c->getWall(NORTH)) updateBorderPixels(c, 0, COLOR_BLACK);
+    else updateBorderPixels(c, 0, COLOR_WHITE);
+	if (c->getWall(EAST)) updateBorderPixels(c, 1, COLOR_BLACK);
+    else updateBorderPixels(c, 1, COLOR_WHITE);
+	if (c->getWall(SOUTH)) updateBorderPixels(c, 2, COLOR_BLACK);
+    else updateBorderPixels(c, 2, COLOR_WHITE);
+	if (c->getWall(WEST)) updateBorderPixels(c, 3, COLOR_BLACK);
+    else updateBorderPixels(c, 3, COLOR_WHITE);
 }
 
 void Maze::updateImage() {

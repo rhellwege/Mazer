@@ -71,8 +71,10 @@ Additionally a text file will be included with the seed of the generation so you
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)
 2. For gif writing I used [gif-h](https://github.com/charlietangora/gif-h)
+3. This [blog](https://weblog.jamisbuck.org/) was really useful for understanding the maze generation algorithims
 
 ## Algorithms:
+> All of the following code is taken directly from the project but has gif writing and image updating removed, and no step counting. If you want to see the methods, look at Maze.cpp starting from line 52 onwards.
 ### Generation:
 #### DFS
 ```c++
@@ -83,20 +85,13 @@ void Maze::dfsGenHelper(Cell* c) {
     Cell* nextCell = c->randomNeighbour();
     while (nextCell != nullptr) {
         c->destroyBorder(nextCell);
-        updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
-        if (saveGif) {
-            addFrame();
-        }
         dfsGenHelper(nextCell);
         nextCell = c->randomNeighbour();
     }
 }
 
 void Maze::genDFS() {
-    if (saveGif) startGif((dir + "gen(dfs).gif").c_str());
     dfsGenHelper(start);
-    if (!saveGif)
-        updateImage();
 }
 ```
 #### Kruskal
@@ -113,7 +108,6 @@ void Maze::setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b) {
 }
 
 void Maze::genKruskal() {
-    if (saveGif) startGif((dir + "gen(kruskal).gif").c_str());
     std::vector<std::pair<Cell*, Cell*>> edges;
     std::unordered_map<Cell*, Cell*> sets;
     int wallsDown = 0;
@@ -135,13 +129,9 @@ void Maze::genKruskal() {
         if (setFind(sets, cur.first) != setFind(sets, cur.second)) {
             setUnion(sets, cur.first, cur.second); // union the sets
             cur.first->destroyBorder(cur.second);
-            updateBorderPixels(cur.first, cur.first->directionFromNeighbour(cur.second), COLOR_WHITE);
-            if (saveGif) addFrame();
             wallsDown++;
         }
     }
-    if (!saveGif)
-        updateImage();
 }
 ```
 
@@ -174,7 +164,6 @@ void addMst(Cell* c, int idx, std::deque<Cell*>& frontier, std::unordered_set<Ce
 }
 
 void Maze::genPrims() {
-    if (saveGif) startGif((dir + "gen(prims).gif").c_str());
     std::unordered_set<Cell*> mst; // minimal spanning tree
     std::deque<Cell*> frontier; // all cells adjacent to the mst
     std::unordered_set<Cell*> fset;
@@ -190,12 +179,7 @@ void Maze::genPrims() {
         std::vector<Cell*> ins = c->visitedNeighbours();
         Cell* neighbour = ins[rand() % ins.size()];
         c->destroyBorder(neighbour);
-        updateBorderPixels(c, c->directionFromNeighbour(neighbour), COLOR_WHITE);
-        if (saveGif) addFrame();
     }
-    if (!saveGif)
-        updateImage();
-    if (saveGif) endGif();
 }
 ```
 
@@ -207,44 +191,28 @@ bool Maze::solveDFSHelper(Cell* c) {
     if (c->getVal() == CELL_PATH) return false;
     if (c != start)
         c->setVal(CELL_PATH);
-    if (saveGif) {
-        updateCellCol(c);
-        addFrame();
-    }
     std::vector<Cell*> accessible = c->accessibleNeighbours();
     for (auto n : accessible) 
         if (solveDFSHelper(n)) return true;
     if (c != start)
         c->setVal(CELL_WASTED);
-    if (saveGif) {
-        updateCellCol(c);
-        addFrame();
-    }
     return false;
 }
 
 void Maze::solveDFS() {
-    if (saveGif) startGif((dir + "solve(DFS).gif").c_str());
     solveDFSHelper(start);
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
 }
 ```
 #### BFS
 ```c++
 void Maze::solveBFS() {
-    if (saveGif) startGif((dir +"solve(BFS).gif").c_str());
     std::queue<Cell*> q;
     std::unordered_map<Cell*, Cell*> path;
     Cell* current = start;
     while (current != finish) {
-        
         if (current != start)
             current->setVal(CELL_WASTED);
-        if (saveGif) {
-            updateCellCol(current);
-            addFrame();
-        }
+        
         std::vector<Cell*> neighbours = current->accessibleNeighbours();
         for (auto neighbour : neighbours) {
             if (neighbour->getVal() != CELL_WASTED)  {
@@ -258,19 +226,12 @@ void Maze::solveBFS() {
         current = path[current];
         if (current == start) break;
         current->setVal(CELL_PATH);
-        if (saveGif) {
-            updateCellCol(current);
-            addFrame();
-        }
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
 }
 ```
 #### Dijkstra
 ```c++
 void Maze::solveDijkstra() {
-    if (saveGif) startGif((dir + "solve(Dijkstra).gif").c_str());
     std::unordered_map<Cell*, unsigned int> distance;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
@@ -291,14 +252,9 @@ void Maze::solveDijkstra() {
         }
         if (u != start)
             u->setVal(CELL_WASTED);
-        if (saveGif) {
-            updateCellCol(u);
-            addFrame();
-        }
         pq.pop();
         std::vector<Cell*> neighbours = u->accessibleNeighbours();
         for (auto v : neighbours) {
-            
             if (distance[v] > distance[u] + 1) {
                 distance[v] = distance[u] + 1;
                 prev[v] = u;
@@ -310,14 +266,8 @@ void Maze::solveDijkstra() {
     Cell* cur = prev[finish];
     while (cur != start) {
         cur->setVal(CELL_PATH);
-        if (saveGif) {
-            updateCellCol(cur);
-            addFrame();
-        }
         cur = prev[cur];
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
 }
 ```
 #### A*
@@ -328,7 +278,6 @@ double Maze::distCell(Cell* a, Cell* b) {
 }
 
 void Maze::solveAStar() {
-    if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
     std::unordered_map<Cell*, double> cost;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<double, Cell*>, std::vector<std::pair<double, Cell*>>, std::greater<std::pair<double, Cell*>>> pq;
@@ -349,10 +298,6 @@ void Maze::solveAStar() {
         }
         if (u != start)
             u->setVal(CELL_WASTED);
-        if (saveGif) {
-            updateCellCol(u);
-            addFrame();
-        }
         pq.pop();
         std::vector<Cell*> neighbours = u->accessibleNeighbours();
         for (auto v : neighbours) {
@@ -367,13 +312,7 @@ void Maze::solveAStar() {
     Cell* cur = prev[finish];
     while (cur != start) {
         cur->setVal(CELL_PATH);
-        if (saveGif) {
-            updateCellCol(cur);
-            addFrame();
-        }
         cur = prev[cur];
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
 }
 ```

@@ -17,7 +17,7 @@ std::unordered_map<std::string, void (Maze::*)(void)> GEN_FUNCS{
     {"kruskal", &Maze::genKruskal},
     {"kruskals", &Maze::genKruskal},
     {"prim", &Maze::genPrims},
-    {"prims", &Maze::genPrims}
+    {"prims", &Maze::genPrims},
 };
 
 std::unordered_map<std::string, int (Maze::*)(void)> SOLVE_FUNCS{

@@ -15,9 +15,14 @@ bool Cell::inBounds(int x0, int y0) {
     return (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h);
 }
 
-bool Cell::wall(int direction) {
+bool Cell::getWall(int direction) {
     if (direction >= 4 || direction < 0) return false;
     return walls[direction];
+}
+
+void Cell::setWall(int direction, bool b) {
+    if (direction >= 4 || direction < 0) return;
+    walls[direction] = b;
 }
 
 int Cell::getVal() {
@@ -42,22 +47,6 @@ void Cell::setVal(int _val) {
 
 void Cell::visit() {
     visited = true;
-}
-
-bool Cell::north() {
-    return walls[0];
-}
-
-bool Cell::east() {
-    return walls[1];
-}
-
-bool Cell::south() {
-    return walls[2];
-}
-
-bool Cell::west() {
-    return walls[3];
 }
 
 void Cell::destroyWall(int direction) {

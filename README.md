@@ -63,10 +63,10 @@ The directory will include two png files (generation and solve) as well as two g
 
 Additionally a text file will be included with the seed of the generation so you can reuse it for testing.
 
-![Unsolved](Mazer_output/kruskal-gen.png)
-![Solved](Mazer_output/astar-solve.png)
-![Maze Generation Gif](Mazer_output/gen(kruskal).gif)
-![Maze Solve Gif](Mazer_output/solve(Astar).gif)
+![Unsolved](Mazer_output/prim-gen.png)
+![Solved](Mazer_output/bfs-solve.png)
+![Maze Generation Gif](Mazer_output/gen(prims).gif)
+![Maze Solve Gif](Mazer_output/solve(BFS).gif)
 
 ## Credit
 1. For png writing I used [stb](https://github.com/nothings/stb)

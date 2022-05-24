@@ -1,11 +1,11 @@
 Generator: prim
-Solver: astar
+Solver: bfs
 
 Width: 20
 Height: 20
 
-Seed: 1653411988
+Seed: 165341219
 
-Generation time: 0.302007
-Solve time: 0.011099
-Solve Steps: 208
+Generation time: 0.267512
+Solve time: 0.011110
+Solve Steps: 271

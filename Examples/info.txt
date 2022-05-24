@@ -1,0 +1,11 @@
+Generator: prims
+Solver: bfs
+
+Width: 20
+Height: 20
+
+Seed: 1
+
+Generation time: 0.249391
+Solve time: 0.011324
+Solve Steps: 330

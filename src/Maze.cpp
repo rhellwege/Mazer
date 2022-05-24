@@ -67,7 +67,7 @@ void Maze::dfsGenHelper(Cell* c) {
 
 void Maze::genDFS() {
     if (saveGif) startGif((dir + "gen(dfs).gif").c_str());
-    dfsGenHelper(start);
+    dfsGenHelper(&grid[rand()%W][rand()%H]);
     if (!saveGif)
         updateImage();
     if (saveGif) endGif();
@@ -148,8 +148,9 @@ void Maze::genPrims() {
     std::unordered_set<Cell*> mst; // minimal spanning tree
     std::deque<Cell*> frontier; // all cells adjacent to the mst
     std::unordered_set<Cell*> fset;
-    addMst(start, -1, frontier, fset, mst);
-    start->visit();
+    Cell* a = &grid[rand() % W][rand() % H];
+    addMst(a, -1, frontier, fset, mst);
+    a->visit();
     while (frontier.size()) {
         // choose random frontier
         int idx = rand() % frontier.size();

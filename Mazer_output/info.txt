@@ -1,11 +1,11 @@
-Generator: kruskal
+Generator: prim
 Solver: astar
 
 Width: 20
 Height: 20
 
-Seed: 1
+Seed: 1653411988
 
-Generation time: 0.248569
-Solve time: 0.011005
-Solve Steps: 233
+Generation time: 0.302007
+Solve time: 0.011099
+Solve Steps: 208

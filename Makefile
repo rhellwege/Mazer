@@ -7,7 +7,7 @@ SRC=src/
 ODIR=obj
 
 CC=g++
-CFLAGS=-I$(IDIR)
+CFLAGS=-I$(IDIR) -lGL -g -Wall -Wformat `pkg-config --static --libs glfw3`
 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))

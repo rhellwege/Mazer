@@ -1,58 +1,44 @@
 #include "Maze.h"
 #include "../deps/gif.h"
 
-Maze::Maze(int w , int h, int _cellLen, int _wallLen, bool _saveGif, int _gifDelay, unsigned int _seed, std::string _dir) {
+Maze::Maze(uint w, uint h) {
     W = w;
     H = h;
-    
-    wallLen = _wallLen;
-    cellLen = _cellLen;
-    seed = _seed;
+    data = (mnode*)malloc(W*H*sizeof(mnode));
+    reset();
+    start = data;
+    finish = start + (W*H*sizeof(mnode));
+}
 
-    gifDelay = _gifDelay;
-    saveGif = _saveGif;
+inline void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
 
-    dir = _dir;
+inline mnode* Maze::getNode(uint x, uint y) {
 
-    iw = new ImageWriter(w*(wallLen + cellLen) + wallLen, h*(wallLen + cellLen) + wallLen);
-    gw = new GifWriter;
+}
 
-    for (int i = 0; i < w; ++i) {
-        grid.push_back({});
-        for (int j = 0; j < h; ++j) {
-            grid[i].push_back({i, j, w, h, 0, &grid});
-        }
+void Maze::resize(uint newW, uint newH) {
+    W = newW;
+    H = newH;
+    free(data);
+    (mnode*)malloc(W*H*sizeof(mnode));
+    reset();
+    start = data;
+    finish = start + (W*H*sizeof(mnode));
+}
+
+void Maze::unsolve() {
+    for (uint i = 0; i < sizeof(data); ++i) {
+        data[i] &= 0b00001111;
     }
-
-    start = &grid[W/2][0];
-    finish = &grid[W/2][H-1];
-    start->setVal(CELL_START);
-    finish->setVal(CELL_FINISH);
-    imgSetup();
-    updateImage();
 }
 
-int Maze::getVal(int x, int y) {
-    return grid[x][y].getVal();
-}
-
-int Maze::getHeight() {
-    return H;
-}
-
-int Maze::getWidth() {
-    return W;
-}
-
-Cell* Maze::getCell(int x, int y) {
-    return &grid[x][y];
-}
+inline uint Maze::getHeight() { return H; }
+inline uint Maze::getWidth() { return W; }
+inline uint Maze::getSeed() { return seed; }
+inline void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 
 /* -------------------- GENERATORS -------------------- */
-void Maze::dfsGenHelper(Cell* c) {
-    if (c->seen()) return;
-    c->visit();
-    
+void Maze::dfsGenHelper(mnode* c) {
     Cell* nextCell = c->randomNeighbour();
     while (nextCell != nullptr) {
         c->destroyBorder(nextCell);
@@ -193,8 +179,6 @@ bool Maze::solveDFSHelper(Cell* c, int& steps) {
 }
 
 int Maze::solveDFS() {
-    int steps = 0;
-    if (saveGif) startGif((dir + "solve(DFS).gif").c_str());
     solveDFSHelper(start, steps);
     if (!saveGif) updateImage();
     if (saveGif) endGif();
@@ -239,14 +223,13 @@ int Maze::solveBFS() {
     return steps;
 }
 
-double Maze::distCell(Cell* a, Cell* b) {
-    std::pair<double, double> diff = std::make_pair(b->getX() - a->getX(), b->getY() - a->getY());
-    return sqrt(diff.first*diff.first + diff.second*diff.second);
+double Maze::distCell(mnode* a, mnode* b) {
+    int w = b->getX() - a->getX();
+    int h = b->getY() - a->getY();
+    return sqrt(x*x + y*y);
 }
 
-int Maze::solveAStar() {
-    int steps = 0;
-    if (saveGif) startGif((dir + "solve(Astar).gif").c_str());
+void Maze::solveAStar() {
     std::unordered_map<Cell*, double> cost;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<double, Cell*>, std::vector<std::pair<double, Cell*>>, std::greater<std::pair<double, Cell*>>> pq;
@@ -297,9 +280,7 @@ int Maze::solveAStar() {
     return steps;
 }
 
-int Maze::solveDijkstra() {
-    if (saveGif) startGif((dir + "solve(Dijkstra).gif").c_str());
-    int steps = 0;
+void Maze::solveDijkstra() {
     std::unordered_map<Cell*, unsigned int> distance;
     std::unordered_map<Cell*, Cell*> prev;
     std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
@@ -349,102 +330,4 @@ int Maze::solveDijkstra() {
     if (!saveGif) updateImage();
     if (saveGif) endGif();
     return steps;
-}
-
-// image
-
-void Maze::updateBorderPixels(Cell* c, int direction, RGBA col) {
-    int x = c->getX(); 
-    int y = c->getY();
-    std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
-    switch  (direction) {
-        case 0:
-            iw->fillRect(topLeft.first + wallLen, topLeft.second, cellLen, wallLen, col);
-            break;
-        case 1:
-            iw->fillRect(topLeft.first + cellLen + wallLen, topLeft.second + wallLen, wallLen, cellLen, col);
-            break;
-        case 2:
-            iw->fillRect(topLeft.first + wallLen, topLeft.second + cellLen + wallLen, cellLen, wallLen, col);
-            break;
-        case 3:
-            iw->fillRect(topLeft.first, topLeft.second + wallLen, wallLen, cellLen, col);
-    }
-}
-
-void Maze::imgSetup()  { // draws all corners once so we dont repeat it
-    for (int x = 0; x < getWidth(); ++x) {
-		for (int y = 0; y < getHeight(); ++y) {
-        std::pair<int, int> tl = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
-		iw->fillRect(tl.first, tl.second, wallLen, wallLen, COLOR_BLACK); // corner
-        if (x == W-1) iw->fillRect(tl.first + wallLen + cellLen, tl.second, wallLen, wallLen, COLOR_BLACK);
-        if (y == H-1) iw->fillRect(tl.first, tl.second + wallLen + cellLen, wallLen, wallLen, COLOR_BLACK);
-        if (x == W-1 && y == H-1) iw->fillRect(tl.first + wallLen + cellLen, tl.second + wallLen + cellLen, wallLen, wallLen, COLOR_BLACK);
-		}
-	}
-}
-
-void Maze::updateCellCol(Cell* c) { // only updates pixels that arent border
-    if  (c->getVal() == CELL_UNVISITED) return; // we memset every pixel to white in imagewriter so we dont need to draw white anywhere.
-    RGBA col = cell_colors[c->getVal()];
-
-    int x = c->getX();
-    int y = c->getY();
-
-    std::pair<int, int> topLeft = std::make_pair(x*(cellLen + wallLen), y*(cellLen+wallLen));
-    RGBA* otherCol = iw->getPixel(topLeft.first + wallLen, topLeft.second + wallLen);
-    if (col.r == otherCol->r && col.g == otherCol->g && col.b == otherCol->b) return;
-    std::pair<int, int> bottomRight = std::make_pair(topLeft.first + cellLen + wallLen, topLeft.second + cellLen + wallLen);
-
-    std::pair<int, int> tl = topLeft;
-
-    iw->fillRect(topLeft.first + wallLen, topLeft.second + wallLen, cellLen, cellLen, col);
-    if (!c->getWall(NORTH)) updateBorderPixels(c, 0, col);
-    if (!c->getWall(EAST)) updateBorderPixels(c, 1, col);
-    if (!c->getWall(SOUTH)) updateBorderPixels(c, 2, col);
-    if (!c->getWall(WEST)) updateBorderPixels(c, 3, col);
-}
-
-void Maze::updateCellPixels(Cell* c) {
-    updateCellCol(c);
-
-	if (c->getWall(NORTH)) updateBorderPixels(c, 0, COLOR_BLACK);
-    else updateBorderPixels(c, 0, COLOR_WHITE);
-	if (c->getWall(EAST)) updateBorderPixels(c, 1, COLOR_BLACK);
-    else updateBorderPixels(c, 1, COLOR_WHITE);
-	if (c->getWall(SOUTH)) updateBorderPixels(c, 2, COLOR_BLACK);
-    else updateBorderPixels(c, 2, COLOR_WHITE);
-	if (c->getWall(WEST)) updateBorderPixels(c, 3, COLOR_BLACK);
-    else updateBorderPixels(c, 3, COLOR_WHITE);
-}
-
-void Maze::updateImage() {
-	// draw the cells:
-	for (int x = 0; x < getWidth(); ++x) {
-		for (int y = 0; y < getHeight(); ++y) {
-			updateCellPixels(getCell(x,y));
-		}
-	}
-}
-
-void Maze::saveImage(const char* fname) {
-    iw->save_to_file(fname);
-}
-
-void Maze::startGif(const char* gifName) {
-    printf("Starting GIF %s...\n", gifName);
-    GifBegin(gw, gifName, iw->getWidth(), iw->getHeight(), gifDelay);
-}
-
-void Maze::addFrame() {
-    GifWriteFrame(gw, iw->getData(), iw->getWidth(), iw->getHeight(), gifDelay);
-}
-
-void Maze::updateGif() {
-    updateImage();
-    addFrame();
-}
-
-void Maze::endGif() {
-    GifEnd(gw);
 }

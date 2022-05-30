@@ -1,109 +1,141 @@
 #include "Maze.h"
-#include "../deps/gif.h"
 
 Maze::Maze(uint w, uint h) {
-    W = w;
-    H = h;
-    data = (mnode*)malloc(W*H*sizeof(mnode));
-    reset();
-    start = data;
-    finish = start + (W*H*sizeof(mnode));
+    resize(w, h);
+    seed = time(NULL);
 }
 
 inline void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
-
-inline mnode* Maze::getNode(uint x, uint y) {
-
+inline bool Maze::inBounds(const coord& c) { return (c.first < 0 || c.second < 0 || c.first >= W || c.second >= c.second) ? false : true; }
+inline mnode* Maze::getNode(const coord& c) {
+    mnode* node = (mnode*)(data + c.second * stride + c.first);
+    return inBounds(c) ? node : nullptr;
 }
-
-void Maze::resize(uint newW, uint newH) {
+inline coord Maze::getCoord(mnode* m) {
+    uint pos = m - data;
+    return std::make_pair(pos % stride, pos / stride);
+}
+void Maze::removeEdge(mnode* a, mnode* b) {
+    if (a-b == -1) {
+        MNODE_REMOVE_WALL(*a, EAST);
+        MNODE_REMOVE_WALL(*b, WEST);
+    }
+    else if (a-b == 1) {
+        MNODE_REMOVE_WALL(*a, WEST);
+        MNODE_REMOVE_WALL(*b, EAST);
+    }
+    else if (a-b == -stride) {
+        MNODE_REMOVE_WALL(*a, SOUTH);
+        MNODE_REMOVE_WALL(*b, NORTH);
+    }
+    else if (a-b == stride) {
+        MNODE_REMOVE_WALL(*a, NORTH);
+        MNODE_REMOVE_WALL(*b, SOUTH);
+    }
+}
+void Maze::removeEdge(mnode_edge& e) {
+    removeEdge(e.first, e.second);
+}
+inline void Maze::resize(uint newW, uint newH) {
     W = newW;
     H = newH;
-    free(data);
-    (mnode*)malloc(W*H*sizeof(mnode));
+    area = W*H;
+    stride = W * sizeof(mnode);
+    if (data)
+        free(data);
+    data = (mnode*)malloc(area*sizeof(mnode));
     reset();
     start = data;
-    finish = start + (W*H*sizeof(mnode));
+    finish = start + area;
 }
-
-void Maze::unsolve() {
+inline void Maze::unsolve() {
     for (uint i = 0; i < sizeof(data); ++i) {
         data[i] &= 0b00001111;
     }
 }
-
 inline uint Maze::getHeight() { return H; }
 inline uint Maze::getWidth() { return W; }
 inline uint Maze::getSeed() { return seed; }
 inline void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 
+inline mnode_vec Maze::allNeighbours(mnode* m) {
+    mnode_vec v;
+    for (int i = 0; i < 4; ++i) {
+        mnode* node = m + 
+    }
+    return v;
+}
+inline mnode_vec Maze::visitedNeighbours(mnode* m) {
+    mnode_vec v;
+    return v;
+}
+inline mnode_vec Maze::unvisitedNeighbours(mnode* m) {
+    mnode_vec v;
+    return v;
+}
+
+inline mnode_vec accessibleNeighbours(mnode* m) {
+    mnode_vec v;
+    for (uint i = 0; i < 4; ++i) {
+    }
+    return v;
+}
+
 /* -------------------- GENERATORS -------------------- */
 void Maze::dfsGenHelper(mnode* c) {
-    Cell* nextCell = c->randomNeighbour();
-    while (nextCell != nullptr) {
-        c->destroyBorder(nextCell);
-        updateBorderPixels(c, c->directionFromNeighbour(nextCell), COLOR_WHITE);
-        if (saveGif) {
-            addFrame();
-        }
-        dfsGenHelper(nextCell);
-        nextCell = c->randomNeighbour();
+    if (MNODE_VISITED(*c)) return;
+    MNODE_VISIT(*c);
+    mnode_vec neighbours = unvisitedNeighbours(c);
+    SHUFFLE(neighbours);
+    for (auto n : neighbours) {
+        removeEdge(c, n);
+        dfsGenHelper(n);
     }
 }
 
 void Maze::genDFS() {
-    if (saveGif) startGif((dir + "gen(dfs).gif").c_str());
-    dfsGenHelper(&grid[rand()%W][rand()%H]);
-    if (!saveGif)
-        updateImage();
-    if (saveGif) endGif();
+    dfsGenHelper(data + rand() % area);
 }
 
-Cell* Maze::setFind(std::unordered_map<Cell*, Cell*>& s, Cell* c) {
+mnode* Maze::setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c) {
     if (s[c] == c) return c;
     return setFind(s, s[c]);
 }
 
-void Maze::setUnion(std::unordered_map<Cell*, Cell*>& s, Cell* a, Cell* b) {
-    Cell* aParent = setFind(s, a);
-    Cell* bParent = setFind(s, b);
+void Maze::setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b) {
+    mnode* aParent = setFind(s, a);
+    mnode* bParent = setFind(s, b);
     s[aParent] = bParent;
 }
 
 void Maze::genKruskal() {
-    if (saveGif) startGif((dir + "gen(kruskal).gif").c_str());
-    std::vector<std::pair<Cell*, Cell*>> edges;
-    std::unordered_map<Cell*, Cell*> sets;
+    std::vector<mnode_edge> edges;
+    std::unordered_map<mnode*, mnode*> sets;
     int wallsDown = 0;
     for (int i = 0; i < W ; ++i) {
         for (int j = 0; j < H; ++j) {
-            Cell* c = getCell(i, j);
+            mnode* c = getNode(i, j);
             sets[c] = c;
             if (i < W - 1)
-                edges.push_back(std::make_pair(c, getCell(i + 1, j)));
+                edges.push_back(std::make_pair(c, getNode(i + 1, j)));
             if (j < H - 1)
-                edges.push_back(std::make_pair(c, getCell(i, j+1)));
+                edges.push_back(std::make_pair(c, getNode(i, j+1)));
         }
     }
     //shuffle the edges:
-    std::shuffle(edges.begin(), edges.end(), std::default_random_engine{seed});
+    SHUFFLE(edges);
     // kruskal
     while (edges.size() && wallsDown < W*H-1) {
-        std::pair<Cell*, Cell*> cur = edges[edges.size()-1]; edges.pop_back();
+        mnode_edge cur = edges[edges.size()-1]; edges.pop_back();
         if (setFind(sets, cur.first) != setFind(sets, cur.second)) {
             setUnion(sets, cur.first, cur.second); // union the sets
-            cur.first->destroyBorder(cur.second);
-            updateBorderPixels(cur.first, cur.first->directionFromNeighbour(cur.second), COLOR_WHITE);
-            if (saveGif) addFrame();
+            removeEdge(cur);
             wallsDown++;
         }
     }
-    if (!saveGif)
-        updateImage();
-    if (saveGif) endGif();
 }
 
-void addFrontier(Cell* c, std::deque<Cell*>& frontier, std::unordered_set<Cell*>& fset) {
+void Maze::addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset) {
     if (fset.find(c) != fset.end()) {
         printf("already in fset.\n");
         return;
@@ -112,7 +144,7 @@ void addFrontier(Cell* c, std::deque<Cell*>& frontier, std::unordered_set<Cell*>
     fset.insert(c);
 }
 
-void addMst(Cell* c, int idx, std::deque<Cell*>& frontier, std::unordered_set<Cell*>& fset, std::unordered_set<Cell*>& mst) {
+void Maze::addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset, std::unordered_set<mnode*>& mst) {
     if (mst.find(c) != mst.end()) return;
     if (fset.find(c) != fset.end())
         fset.erase(c);
@@ -120,7 +152,7 @@ void addMst(Cell* c, int idx, std::deque<Cell*>& frontier, std::unordered_set<Ce
         frontier.erase(frontier.begin() + idx);
     }
     mst.insert(c);
-    std::vector<Cell*> neighbours = c->unvisitedNeighbours();
+    mnode_vec neighbours = unvisitedNeighbours(c);
     for (auto n : neighbours) {
         if (fset.find(n) == fset.end()) {
             addFrontier(n, frontier, fset);
@@ -130,43 +162,33 @@ void addMst(Cell* c, int idx, std::deque<Cell*>& frontier, std::unordered_set<Ce
 }
 
 void Maze::genPrims() {
-    if (saveGif) startGif((dir + "gen(prims).gif").c_str());
-    std::unordered_set<Cell*> mst; // minimal spanning tree
-    std::deque<Cell*> frontier; // all cells adjacent to the mst
-    std::unordered_set<Cell*> fset;
-    Cell* a = &grid[rand() % W][rand() % H];
+    std::unordered_set<mnode*> mst; // minimal spanning tree
+    std::deque<mnode*> frontier; // all mnodes adjacent to the mst
+    std::unordered_set<mnode*> fset;
+    mnode* a = data + rand() % area;
     addMst(a, -1, frontier, fset, mst);
-    a->visit();
+    MNODE_VISIT(*a);
     while (frontier.size()) {
         // choose random frontier
         int idx = rand() % frontier.size();
-        Cell* c = frontier[idx];
+        mnode* c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
         // destroy the walls of one of the adjacent mst nodes (at random)
-        c->visit();
-        std::vector<Cell*> ins = c->visitedNeighbours();
-        Cell* neighbour = ins[rand() % ins.size()];
-        c->destroyBorder(neighbour);
-        updateBorderPixels(c, c->directionFromNeighbour(neighbour), COLOR_WHITE);
-        if (saveGif) addFrame();
+        MNODE_VISIT(*c);
+        mnode_vec ins = visitedNeighbours(c);
+        mnode* neighbour = ins[rand() % ins.size()];
+        removeEdge(c, neighbour);
     }
-    if (!saveGif)
-        updateImage();
-    if (saveGif) endGif();
 }
 
 /* -------------------- SOLVERS -------------------- */
-bool Maze::solveDFSHelper(Cell* c, int& steps) {
+bool Maze::solveDFSHelper(mnode* c, int& steps) {
     ++steps;
     if (c == finish) return true;
-    if (c->getVal() == CELL_PATH) return false;
+    if (MNODE_PATH(*c)) return false;
     if (c != start)
-        c->setVal(CELL_PATH);
-    if (saveGif) {
-        updateCellCol(c);
-        addFrame();
-    }
-    std::vector<Cell*> accessible = c->accessibleNeighbours();
+        MNODE_SET_PATH(*c);
+    mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible) 
         if (solveDFSHelper(n, steps)) return true;
     if (c != start)
@@ -318,16 +340,13 @@ void Maze::solveDijkstra() {
         }
     }
     // color path
-    Cell* cur = prev[finish];
+    mnode* cur = prev[finish];
     while (cur != start) {
-        cur->setVal(CELL_PATH);
+        MNODE_SET_PATH(*cur);
         if (saveGif) {
             updateCellCol(cur);
             addFrame();
         }
         cur = prev[cur];
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
-    return steps;
 }

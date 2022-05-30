@@ -6,45 +6,67 @@ typedef unsigned char uchar;
 typedef uchar mnode;
 typedef std::pair<uint, uint> coord;
 typedef std::vector<mnode*> mnode_vec;
+typedef std::pair<mnode*, mnode*> mnode_edge;
 
 // first four bits are state flags, last 4 flags are the states of the walls
-#define MNODE_CLEAN           0b00001111
-#define MNODE_NOWALL          0b00000000
-#define MNODE_NORTH(X)   (X & 0b00001000)
-#define MNODE_EAST(X)    (X & 0b00000100)
-#define MNODE_SOUTH(X)   (X & 0b00000010)
-#define MNODE_WEST(X)    (X & 0b00000001)
-#define MNODE_VISITED(X) (X & 0b10000000)
-#define MNODE_PATH(X)    (X & 0b01000000)
-#define MNODE_WASTED(X)  (X & 0b00100000)
+#define NORTH 0
+#define EAST 1
+#define SOUTH 2
+#define WEST 3
+#define OPPOSITE_DIRECTION(X) (X+2%4)
+#define MNODE_CLEAN                0b00001111
+#define MNODE_NOWALL               0b00000000
+#define MNODE_GET_WALL(X, Y) (X & (1 << (3-Y)))
+#define MNODE_REMOVE_WALL(X, Y) (X &= ~(1 << (3-Y)))
+#define MNODE_VISIT(X)       (X |= 0b10000000)
+#define MNODE_VISITED(X)     (X &  0b10000000)
+#define MNODE_UNVISIT(X)     (X &= 0b01111111)
+#define MNODE_SET_PATH(X)    (X |= 0b01000000)
+#define MNODE_PATH(X)        (X &  0b01000000)
+#define MNODE_REMOVE_PATH(X) (X &= 0b10111111)
+#define MNODE_SET_WASTED(X)  (X |= 0b00100000)
+#define MNODE_WASTED(X)      (X &  0b00100000)
+
+#define SHUFFLE(X) std::shuffle(X.begin(), X.end(), std::default_random_engine{seed})
 
 class Maze {
 private:
     mnode* data, *start, *finish;
     uint seed;
     uint W, H;
+    uint area;
+    uint stride;
+    int directions[4];
+    inline bool inBounds(const coord& c);
     
     bool solveDFSHelper(mnode* c, int& steps);
     void dfsGenHelper(mnode* c);
     double distCell(mnode* a, mnode* b);
     mnode* setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c);
     void setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b);
+    void addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset, std::unordered_set<mnode*>& mst);
+    void addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset);
 
-    inline mnode_vec allNeighbours();
-    inline mnode_vec visitedNeighbours();
-    inline mnode_vec unvisitedNeighbours();
+    void removeEdge(mnode* a, mnode* b);
+    void removeEdge(mnode_edge& e);
+    inline mnode_vec allNeighbours(mnode* m);
+    inline mnode_vec visitedNeighbours(mnode* m);
+    inline mnode_vec unvisitedNeighbours(mnode* m);
+    inline mnode_vec accessibleNeighbours(mnode* m);
+
+
     
 public:
     Maze(uint w, uint h);
     inline void reset();
 
-    void resize(uint newW, uint newH);
-    void unsolve();
+    inline void resize(uint newW, uint newH);
+    inline void unsolve();
 
     inline uint getWidth();
     inline uint getHeight();
-    inline mnode* getNode(uint x, uint y);
-    inline coord getCoord(mnode*);
+    inline mnode* getNode(const coord& c);
+    inline coord getCoord(mnode* m);
     inline uint getSeed();
     inline void setSeed(uint newSeed);
     

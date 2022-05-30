@@ -4,7 +4,7 @@
 typedef uint uint32_t;
 typedef unsigned char uchar;
 typedef uchar mnode;
-typedef std::pair<uint, uint> coord;
+typedef std::pair<int, int> coord;
 typedef std::vector<mnode*> mnode_vec;
 typedef std::pair<mnode*, mnode*> mnode_edge;
 
@@ -29,6 +29,13 @@ typedef std::pair<mnode*, mnode*> mnode_edge;
 
 #define SHUFFLE(X) std::shuffle(X.begin(), X.end(), std::default_random_engine{seed})
 
+static const coord DIRECTIONS[4] {{0,-1},{1,0},{0,1},{-1,0}};
+
+template <typename T,typename U>                                                   
+std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
+    return {l.first+r.first,l.second+r.second};                                    
+}     
+
 class Maze {
 private:
     mnode* data, *start, *finish;
@@ -36,7 +43,8 @@ private:
     uint W, H;
     uint area;
     uint stride;
-    int directions[4];
+    
+    inline bool inBounds(const uint x, const uint y);
     inline bool inBounds(const coord& c);
     
     bool solveDFSHelper(mnode* c, int& steps);

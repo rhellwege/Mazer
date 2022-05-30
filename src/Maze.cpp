@@ -6,7 +6,8 @@ Maze::Maze(uint w, uint h) {
 }
 
 inline void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
-inline bool Maze::inBounds(const coord& c) { return (c.first < 0 || c.second < 0 || c.first >= W || c.second >= c.second) ? false : true; }
+inline bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
+inline bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
 inline mnode* Maze::getNode(const coord& c) {
     mnode* node = (mnode*)(data + c.second * stride + c.first);
     return inBounds(c) ? node : nullptr;
@@ -60,23 +61,52 @@ inline void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 
 inline mnode_vec Maze::allNeighbours(mnode* m) {
     mnode_vec v;
+    coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
-        mnode* node = m + 
+        coord newCoord = c + DIRECTIONS[i];
+        if (inBounds(newCoord)) {
+            v.push_back(getNode(newCoord));
+        }
     }
     return v;
 }
 inline mnode_vec Maze::visitedNeighbours(mnode* m) {
     mnode_vec v;
+    coord c = getCoord(m);
+    for (int i = 0; i < 4; ++i) {
+        coord newCoord = c + DIRECTIONS[i];
+        if (inBounds(newCoord) ) {
+            mnode* newNode = getNode(newCoord);
+            if (MNODE_VISITED(*(getNode(newCoord))))
+                v.push_back(newNode);
+        }
+    }
     return v;
 }
 inline mnode_vec Maze::unvisitedNeighbours(mnode* m) {
     mnode_vec v;
+    coord c = getCoord(m);
+    for (int i = 0; i < 4; ++i) {
+        coord newCoord = c + DIRECTIONS[i];
+        if (inBounds(newCoord)) {
+            mnode* newNode = getNode(newCoord);
+            if (!MNODE_VISITED(*(getNode(newCoord))))
+                v.push_back(newNode);
+        }
+    }
     return v;
 }
 
-inline mnode_vec accessibleNeighbours(mnode* m) {
+inline mnode_vec Maze::accessibleNeighbours(mnode* m) {
     mnode_vec v;
-    for (uint i = 0; i < 4; ++i) {
+    coord c = getCoord(m);
+    for (int i = 0; i < 4; ++i) {
+        coord newCoord = c + DIRECTIONS[i];
+        if (inBounds(newCoord)) {
+            mnode* newNode = getNode(newCoord);
+            if (!MNODE_GET_WALL(*newNode, i))
+                v.push_back(newNode);
+        }
     }
     return v;
 }

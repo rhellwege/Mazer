@@ -212,8 +212,9 @@ void Maze::genPrims() {
 }
 
 /* -------------------- SOLVERS -------------------- */
-bool Maze::solveDFSHelper(mnode* c, int& steps) {
+bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
     ++steps;
+    ++pathLen;
     if (c == finish) return true;
     if (MNODE_PATH(*c)) return false;
     if (c != start)
@@ -221,40 +222,29 @@ bool Maze::solveDFSHelper(mnode* c, int& steps) {
     mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible) 
         if (solveDFSHelper(n, steps)) return true;
-    if (c != start)
-        c->setVal(CELL_WASTED);
-    if (saveGif) {
-        updateCellCol(c);
-        addFrame();
+    if (c != start) {
+        MNODE_SET_WASTED(*c);
+        --pathLen;
     }
     return false;
 }
 
-int Maze::solveDFS() {
-    solveDFSHelper(start, steps);
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
+void Maze::solveDFS(uint& steps, uint& pathLen) {
+    solveDFSHelper(start, steps, pathLen);
     return steps;
 } 
 
-int Maze::solveBFS() {
-    int steps;
-    if (saveGif) startGif((dir +"solve(BFS).gif").c_str());
-    std::queue<Cell*> q;
-    std::unordered_map<Cell*, Cell*> path;
-    Cell* current = start;
+void Maze::solveBFS(uint& steps, uint& pathLen) {
+    std::queue<mnode*> q;
+    std::unordered_map<mnode*, mnode*> path;
+    mnode* current = start;
     while (current != finish) {
-        
-        if (current != start)
-            current->setVal(CELL_WASTED);
         ++steps;
-        if (saveGif) {
-            updateCellCol(current);
-            addFrame();
-        }
-        std::vector<Cell*> neighbours = current->accessibleNeighbours();
+        if (current != start)
+            MNODE_SET_WASTED(*current);
+        mnode_vec neighbours = accessibleNeighbours(current);
         for (auto neighbour : neighbours) {
-            if (neighbour->getVal() != CELL_WASTED)  {
+            if (!MNODE_WASTED(*current))  {
                 q.push(neighbour);
                 path[neighbour] = current;
             }
@@ -262,33 +252,26 @@ int Maze::solveBFS() {
         current = q.front(); q.pop();
     }
     while (current != start) {
+        ++pathLen;
         current = path[current];
         if (current == start) break;
-        current->setVal(CELL_PATH);
-        if (saveGif) {
-            updateCellCol(current);
-            addFrame();
-        }
+        MNODE_SET_PATH(*current);
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
-    return steps;
 }
 
 double Maze::distCell(mnode* a, mnode* b) {
-    int w = b->getX() - a->getX();
-    int h = b->getY() - a->getY();
-    return sqrt(x*x + y*y);
+    coord diff = getCoord(a) - getCoord(b);
+    return sqrt(diff.first*diff.first + diff.second*diff.second);
 }
 
-void Maze::solveAStar() {
-    std::unordered_map<Cell*, double> cost;
-    std::unordered_map<Cell*, Cell*> prev;
-    std::priority_queue<std::pair<double, Cell*>, std::vector<std::pair<double, Cell*>>, std::greater<std::pair<double, Cell*>>> pq;
+void Maze::solveAStar(uint& steps, uint& pathLen) {
+    std::unordered_map<mnode*, double> cost;
+    std::unordered_map<mnode*, mnode*> prev;
+    std::priority_queue<std::pair<double, mnode*>, std::vector<std::pair<double, mnode*>>, std::greater<std::pair<double, mnode*>>> pq;
     cost[start] = 0 + distCell(start, finish);
     for (int i = 0; i < W ; ++i) {
         for (int j = 0; j < H; ++j) {
-            Cell* c = getCell(i, j);
+            mnode* c = getNode(i, j);
             if (c != start) {
                 cost[c] = DBL_MAX;
             }
@@ -296,19 +279,15 @@ void Maze::solveAStar() {
     }
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
-        Cell* u = pq.top().second;
+        mnode* u = pq.top().second;
         if (u == finish) {
             break;
         }
         if (u != start)
-            u->setVal(CELL_WASTED);
+            MNODE_SET_WASTED(*u);
         ++steps;
-        if (saveGif) {
-            updateCellCol(u);
-            addFrame();
-        }
         pq.pop();
-        std::vector<Cell*> neighbours = u->accessibleNeighbours();
+        std::vector<mnode*> neighbours = u->accessibleNeighbours();
         for (auto v : neighbours) {
             if (cost[v] > cost[u] + distCell(u, finish)) {
                 cost[v] = cost[u] + distCell(u, finish);
@@ -318,24 +297,18 @@ void Maze::solveAStar() {
         }
     }
     // color path
-    Cell* cur = prev[finish];
+    mnode* cur = prev[finish];
     while (cur != start) {
-        cur->setVal(CELL_PATH);
-        if (saveGif) {
-            updateCellCol(cur);
-            addFrame();
-        }
+        ++pathLen;
+        MNODE_SET_PATH(*cur);
         cur = prev[cur];
     }
-    if (!saveGif) updateImage();
-    if (saveGif) endGif();
-    return steps;
 }
 
-void Maze::solveDijkstra() {
-    std::unordered_map<Cell*, unsigned int> distance;
-    std::unordered_map<Cell*, Cell*> prev;
-    std::priority_queue<std::pair<unsigned int, Cell*>, std::vector<std::pair<unsigned int, Cell*>>, std::greater<std::pair<unsigned int, Cell*>>> pq;
+void Maze::solveDijkstra(uint& steps, uint& pathLen) {
+    std::unordered_map<mnode*, unsigned int> distance;
+    std::unordered_map<mnode*, mnode*> prev;
+    std::priority_queue<std::pair<unsigned int, mnode*>, std::vector<std::pair<unsigned int, mnode*>>, std::greater<std::pair<unsigned int, mnode*>>> pq;
     distance[start] = 0;
     for (int i = 0; i < W ; ++i) {
         for (int j = 0; j < H; ++j) {
@@ -347,19 +320,14 @@ void Maze::solveDijkstra() {
     }
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
-        Cell* u = pq.top().second;
+        mnode* u = pq.top().second;
         if (u == finish) {
             break;
         }
         if (u != start)
             u->setVal(CELL_WASTED);
-        if (saveGif) {
-            updateCellCol(u);
-            addFrame();
-        }
-        ++steps;
         pq.pop();
-        std::vector<Cell*> neighbours = u->accessibleNeighbours();
+        std::vector<mnode*> neighbours = u->accessibleNeighbours();
         for (auto v : neighbours) {
             
             if (distance[v] > distance[u] + 1) {
@@ -373,10 +341,6 @@ void Maze::solveDijkstra() {
     mnode* cur = prev[finish];
     while (cur != start) {
         MNODE_SET_PATH(*cur);
-        if (saveGif) {
-            updateCellCol(cur);
-            addFrame();
-        }
         cur = prev[cur];
     }
 }

@@ -34,7 +34,11 @@ static const coord DIRECTIONS[4] {{0,-1},{1,0},{0,1},{-1,0}};
 template <typename T,typename U>                                                   
 std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
     return {l.first+r.first,l.second+r.second};                                    
-}     
+}
+template <typename T,typename U>                                                   
+std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
+    return {l.first-r.first,l.second-r.second};                                    
+}  
 
 class Maze {
 private:
@@ -47,7 +51,7 @@ private:
     inline bool inBounds(const uint x, const uint y);
     inline bool inBounds(const coord& c);
     
-    bool solveDFSHelper(mnode* c, int& steps);
+    bool solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
     void dfsGenHelper(mnode* c);
     double distCell(mnode* a, mnode* b);
     mnode* setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c);

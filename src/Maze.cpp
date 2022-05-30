@@ -8,9 +8,10 @@ Maze::Maze(uint w, uint h) {
 inline void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
 inline bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
 inline bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
-inline mnode* Maze::getNode(const coord& c) {
-    mnode* node = (mnode*)(data + c.second * stride + c.first);
-    return inBounds(c) ? node : nullptr;
+inline mnode* Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
+inline mnode* Maze::getNode(const uint x, const uint y) {
+    mnode* node = (mnode*)(data + y * stride + x);
+    return inBounds(x, y) ? node : nullptr;
 }
 inline coord Maze::getCoord(mnode* m) {
     uint pos = m - data;
@@ -142,8 +143,8 @@ void Maze::genKruskal() {
     std::vector<mnode_edge> edges;
     std::unordered_map<mnode*, mnode*> sets;
     int wallsDown = 0;
-    for (int i = 0; i < W ; ++i) {
-        for (int j = 0; j < H; ++j) {
+    for (uint i = 0; i < W ; ++i) {
+        for (uint j = 0; j < H; ++j) {
             mnode* c = getNode(i, j);
             sets[c] = c;
             if (i < W - 1)
@@ -221,7 +222,7 @@ bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
         MNODE_SET_PATH(*c);
     mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible) 
-        if (solveDFSHelper(n, steps)) return true;
+        if (solveDFSHelper(n, steps, pathLen)) return true;
     if (c != start) {
         MNODE_SET_WASTED(*c);
         --pathLen;
@@ -231,7 +232,6 @@ bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
 
 void Maze::solveDFS(uint& steps, uint& pathLen) {
     solveDFSHelper(start, steps, pathLen);
-    return steps;
 } 
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
@@ -269,14 +269,11 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
     std::unordered_map<mnode*, mnode*> prev;
     std::priority_queue<std::pair<double, mnode*>, std::vector<std::pair<double, mnode*>>, std::greater<std::pair<double, mnode*>>> pq;
     cost[start] = 0 + distCell(start, finish);
-    for (int i = 0; i < W ; ++i) {
-        for (int j = 0; j < H; ++j) {
-            mnode* c = getNode(i, j);
-            if (c != start) {
-                cost[c] = DBL_MAX;
-            }
-        }
+
+    for (uint i = 0; i < area; ++i) {
+        if (data + i!=start)cost[data + i] = DBL_MAX;
     }
+
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
         mnode* u = pq.top().second;
@@ -287,7 +284,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
             MNODE_SET_WASTED(*u);
         ++steps;
         pq.pop();
-        std::vector<mnode*> neighbours = u->accessibleNeighbours();
+        mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
             if (cost[v] > cost[u] + distCell(u, finish)) {
                 cost[v] = cost[u] + distCell(u, finish);
@@ -310,13 +307,8 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
     std::unordered_map<mnode*, mnode*> prev;
     std::priority_queue<std::pair<unsigned int, mnode*>, std::vector<std::pair<unsigned int, mnode*>>, std::greater<std::pair<unsigned int, mnode*>>> pq;
     distance[start] = 0;
-    for (int i = 0; i < W ; ++i) {
-        for (int j = 0; j < H; ++j) {
-            Cell* c = getCell(i, j);
-            if (c != start) {
-                distance[c] = INT_MAX;
-            }
-        }
+    for (uint i = 0; i < area; ++i) {
+        if (data + i!=start)distance[data + i] = INT_MAX;
     }
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
@@ -325,9 +317,9 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
             break;
         }
         if (u != start)
-            u->setVal(CELL_WASTED);
+            MNODE_SET_WASTED(*u);
         pq.pop();
-        std::vector<mnode*> neighbours = u->accessibleNeighbours();
+        mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
             
             if (distance[v] > distance[u] + 1) {

@@ -78,6 +78,7 @@ public:
     inline uint getWidth();
     inline uint getHeight();
     inline mnode* getNode(const coord& c);
+    inline mnode* getNode(const uint x, const uint y);
     inline coord getCoord(mnode* m);
     inline uint getSeed();
     inline void setSeed(uint newSeed);

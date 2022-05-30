@@ -18,3 +18,4 @@
 #include <chrono>
 #include <deque>
 #include <cfloat>
+#include <string.h>

@@ -38,7 +38,12 @@ std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {
 template <typename T,typename U>                                                   
 std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
     return {l.first-r.first,l.second-r.second};                                    
-}  
+}
+
+struct TreeNode {
+    mnode* ref;
+    uint weights[4];
+};
 
 class Maze {
 private:
@@ -65,8 +70,6 @@ private:
     inline mnode_vec visitedNeighbours(mnode* m);
     inline mnode_vec unvisitedNeighbours(mnode* m);
     inline mnode_vec accessibleNeighbours(mnode* m);
-
-
     
 public:
     Maze(uint w, uint h);

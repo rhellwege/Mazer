@@ -28,12 +28,17 @@ typedef std::pair<mnode*, mnode*> mnode_edge;
 #define MNODE_WASTED(X)      (X &  0b00100000)
 #define MNODE_START(X)       (X &  0b00010000)
 #define MNODE_SET_START(X)   (X |= 0b00010000)
-#define MNODE_FINISH(X)      ((X &  0b11110000) == 0b11110000)
-#define MNODE_SET_FINISH(X)  (X |= 0b11110000)
+#define MNODE_FINISH(X)      ((X &  0b01110000) == 0b01110000)
+#define MNODE_SET_FINISH(X)  (X |= 0b01110000)
 
 #define SHUFFLE(X) std::shuffle(X.begin(), X.end(), std::default_random_engine{seed})
 
-static const coord DIRECTIONS[4] {{0,-1},{1,0},{0,1},{-1,0}};
+static const coord DIRECTIONS[4] {
+    std::make_pair(0,-1),
+    std::make_pair(1,0),
+    std::make_pair(0,1),
+    std::make_pair(-1,0)
+};
 
 template <typename T,typename U>                                                   
 std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   

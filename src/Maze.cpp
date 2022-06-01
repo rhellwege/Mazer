@@ -8,7 +8,7 @@ Maze::Maze(uint w, uint h) {
 }
 
 void Maze::reset() {
-     memset(data, MNODE_CLEAN, sizeof(data)); generated = false; solved = false;
+    memset(data, MNODE_CLEAN, area); generated = false; solved = false;
     start = data;
     finish = start + area - 1;
     MNODE_SET_START(*data);
@@ -28,22 +28,31 @@ coord Maze::getCoord(mnode* m) {
     return std::make_pair(pos % stride, pos / stride);
 }
 void Maze::removeEdge(mnode* a, mnode* b) {
-    if (a-b == -1) {
-        MNODE_REMOVE_WALL(*a, EAST);
-        MNODE_REMOVE_WALL(*b, WEST);
+    coord aCoord = getCoord(a);
+    coord bCoord = getCoord(b);
+    coord diff  = bCoord - aCoord;
+    for (int i = 0; i < 4; ++i) {
+        if (diff == DIRECTIONS[i]) {
+            MNODE_REMOVE_WALL(*a, i);
+            MNODE_REMOVE_WALL(*b, (i+2)%4);
+        }
     }
-    else if (a-b == 1) {
-        MNODE_REMOVE_WALL(*a, WEST);
-        MNODE_REMOVE_WALL(*b, EAST);
-    }
-    else if (a-b == -stride) {
-        MNODE_REMOVE_WALL(*a, SOUTH);
-        MNODE_REMOVE_WALL(*b, NORTH);
-    }
-    else if (a-b == stride) {
-        MNODE_REMOVE_WALL(*a, NORTH);
-        MNODE_REMOVE_WALL(*b, SOUTH);
-    }
+    // if (a-b == -1) {
+    //     MNODE_REMOVE_WALL(*a, EAST);
+    //     MNODE_REMOVE_WALL(*b, WEST);
+    // }
+    // else if (a-b == 1) {
+    //     MNODE_REMOVE_WALL(*a, WEST);
+    //     MNODE_REMOVE_WALL(*b, EAST);
+    // }
+    // else if (a-b == -stride) {
+    //     MNODE_REMOVE_WALL(*a, SOUTH);
+    //     MNODE_REMOVE_WALL(*b, NORTH);
+    // }
+    // else if (a-b == stride) {
+    //     MNODE_REMOVE_WALL(*a, NORTH);
+    //     MNODE_REMOVE_WALL(*b, SOUTH);
+    // }
 }
 void Maze::removeEdge(mnode_edge& e) {
     removeEdge(e.first, e.second);
@@ -60,10 +69,12 @@ void Maze::resize(uint newW, uint newH) {
     
 }
 void Maze::unsolve() {
-    for (uint i = 0; i < sizeof(data); ++i) {
+    for (uint i = 0; i < area; ++i) {
         data[i] &= 0b00001111;
     }
     solved = false;
+    MNODE_SET_START(*start);
+    MNODE_SET_FINISH(*finish);
 }
 uint Maze::getHeight() { return H; }
 uint Maze::getWidth() { return W; }

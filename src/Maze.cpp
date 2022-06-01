@@ -1,19 +1,19 @@
-#include "Maze.h"
+#include "../include/Maze.h"
 
 Maze::Maze(uint w, uint h) {
     resize(w, h);
     seed = time(NULL);
 }
 
-inline void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
-inline bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
-inline bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
-inline mnode* Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
-inline mnode* Maze::getNode(const uint x, const uint y) {
+void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
+bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
+bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
+mnode* Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
+mnode* Maze::getNode(const uint x, const uint y) {
     mnode* node = (mnode*)(data + y * stride + x);
     return inBounds(x, y) ? node : nullptr;
 }
-inline coord Maze::getCoord(mnode* m) {
+coord Maze::getCoord(mnode* m) {
     uint pos = m - data;
     return std::make_pair(pos % stride, pos / stride);
 }
@@ -38,7 +38,7 @@ void Maze::removeEdge(mnode* a, mnode* b) {
 void Maze::removeEdge(mnode_edge& e) {
     removeEdge(e.first, e.second);
 }
-inline void Maze::resize(uint newW, uint newH) {
+void Maze::resize(uint newW, uint newH) {
     W = newW;
     H = newH;
     area = W*H;
@@ -50,17 +50,17 @@ inline void Maze::resize(uint newW, uint newH) {
     start = data;
     finish = start + area;
 }
-inline void Maze::unsolve() {
+void Maze::unsolve() {
     for (uint i = 0; i < sizeof(data); ++i) {
         data[i] &= 0b00001111;
     }
 }
-inline uint Maze::getHeight() { return H; }
-inline uint Maze::getWidth() { return W; }
-inline uint Maze::getSeed() { return seed; }
-inline void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
+uint Maze::getHeight() { return H; }
+uint Maze::getWidth() { return W; }
+uint Maze::getSeed() { return seed; }
+void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 
-inline mnode_vec Maze::allNeighbours(mnode* m) {
+mnode_vec Maze::allNeighbours(mnode* m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
@@ -71,7 +71,7 @@ inline mnode_vec Maze::allNeighbours(mnode* m) {
     }
     return v;
 }
-inline mnode_vec Maze::visitedNeighbours(mnode* m) {
+mnode_vec Maze::visitedNeighbours(mnode* m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
@@ -84,7 +84,7 @@ inline mnode_vec Maze::visitedNeighbours(mnode* m) {
     }
     return v;
 }
-inline mnode_vec Maze::unvisitedNeighbours(mnode* m) {
+mnode_vec Maze::unvisitedNeighbours(mnode* m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
@@ -98,7 +98,7 @@ inline mnode_vec Maze::unvisitedNeighbours(mnode* m) {
     return v;
 }
 
-inline mnode_vec Maze::accessibleNeighbours(mnode* m) {
+mnode_vec Maze::accessibleNeighbours(mnode* m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {

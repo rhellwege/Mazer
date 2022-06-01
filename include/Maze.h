@@ -53,8 +53,8 @@ private:
     uint area;
     uint stride;
     
-    inline bool inBounds(const uint x, const uint y);
-    inline bool inBounds(const coord& c);
+    bool inBounds(const uint x, const uint y);
+    bool inBounds(const coord& c);
     
     bool solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
     void dfsGenHelper(mnode* c);
@@ -66,25 +66,25 @@ private:
 
     void removeEdge(mnode* a, mnode* b);
     void removeEdge(mnode_edge& e);
-    inline mnode_vec allNeighbours(mnode* m);
-    inline mnode_vec visitedNeighbours(mnode* m);
-    inline mnode_vec unvisitedNeighbours(mnode* m);
-    inline mnode_vec accessibleNeighbours(mnode* m);
+    mnode_vec allNeighbours(mnode* m);
+    mnode_vec visitedNeighbours(mnode* m);
+    mnode_vec unvisitedNeighbours(mnode* m);
+    mnode_vec accessibleNeighbours(mnode* m);
     
 public:
     Maze(uint w, uint h);
-    inline void reset();
+    void reset();
 
-    inline void resize(uint newW, uint newH);
-    inline void unsolve();
+    void resize(uint newW, uint newH);
+    void unsolve();
 
-    inline uint getWidth();
-    inline uint getHeight();
-    inline mnode* getNode(const coord& c);
-    inline mnode* getNode(const uint x, const uint y);
-    inline coord getCoord(mnode* m);
-    inline uint getSeed();
-    inline void setSeed(uint newSeed);
+    uint getWidth();
+    uint getHeight();
+    mnode* getNode(const coord& c);
+    mnode* getNode(const uint x, const uint y);
+    coord getCoord(mnode* m);
+    uint getSeed();
+    void setSeed(uint newSeed);
     
     void genDFS();
     void genKruskal();

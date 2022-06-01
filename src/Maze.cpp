@@ -156,7 +156,7 @@ void Maze::genKruskal() {
     //shuffle the edges:
     SHUFFLE(edges);
     // kruskal
-    while (edges.size() && wallsDown < W*H-1) {
+    while (edges.size() && wallsDown < area-1) {
         mnode_edge cur = edges[edges.size()-1]; edges.pop_back();
         if (setFind(sets, cur.first) != setFind(sets, cur.second)) {
             setUnion(sets, cur.first, cur.second); // union the sets

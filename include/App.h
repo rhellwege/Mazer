@@ -14,9 +14,15 @@ private:
     bool show_maze;
     bool show_controls;
     bool show_demo;
+    bool maze_generating;
+    bool maze_solving;
     bool animate_generation;
     bool animate_solving;
     float playback_speed;
+    uint steps_gen;
+    uint steps_solve;
+    uint len_path;
+    float cell_to_wall;
 public:
     App(const char* title, int width, int height);
     ~App();

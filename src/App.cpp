@@ -104,6 +104,10 @@ App::App(const char* title, int width, int height) {
     animate_generation = false;
     animate_solving = false;
     playback_speed = 1.0f;
+    steps_gen = 0;
+    steps_solve = 0;
+    len_path = 0;
+    cell_to_wall = 0.0f;
 }
 
 void App::run() {
@@ -167,10 +171,31 @@ App::~App() {
 
 void App::renderControls() {
     ImGui::Begin("Controls", &show_controls);
-    ImGui::Button("Generate");
+    if (ImGui::Button("Generate") && !maze_generating) {
+        maze_generating = true;
+        if (maze->isGenerated()) {
+            maze->reset();
+            steps_gen = 0;
+            steps_solve = 0;
+            len_path = 0;
+        }
+        // if animate generation: send to thread!
+        maze->genDFS(steps_gen);
+        maze_generating = false;
+    }
     ImGui::SameLine();
     ImGui::Checkbox("Animate", &animate_generation);
-    ImGui::Button("Solve");
+    if (maze->isGenerated() && ImGui::Button("Solve") && !maze_solving) {
+        maze_solving = true;
+        if (maze->isSolved()) {
+            maze->unsolve();
+            steps_solve = 0;
+            len_path = 0;
+        }
+        // if animate solving send to thread!
+        maze->solveDFS(steps_solve, len_path);
+        maze_solving = false;
+    }
     ImGui::SameLine();
     ImGui::Checkbox("Animate", &animate_solving);
     ImGui::SliderFloat("Animation Playback Speed", &playback_speed, 0.5f, 4.0f);
@@ -178,7 +203,32 @@ void App::renderControls() {
 }
 
 void App::renderMaze() {
-    ImGui::Begin("Maze", &show_maze);
+    ImGui::Begin("Maze");
+    ImGui::End();
+}
+
+void App::renderInfo() {
+    ImGui::Begin("Info", &show_info);
+    ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
+    ImGui::Text("Maze Dimensions: (%.i, %.i)", maze->getWidth(), maze->getHeight());
+    ImGui::Text("Seed %.u", maze->getSeed());
+    if (!maze->isGenerated())
+        ImGui::Text("Maze State: EMPTY");
+    else if (!maze->isSolved())
+        ImGui::Text("Maze State: UNSOLVED");
+    else
+        ImGui::Text("Maze State: SOLVED!");
+    ImGui::Text("Generation Progress: %.i/%.i", steps_gen, maze->getArea());
+    if (maze->isGenerated()) {
+        ImGui::Text("Solve steps: %.i", steps_solve);
+        ImGui::Text("Path length: %.i", len_path);
+    }
+    
+    ImGui::End();
+}
+
+void renderTestCanvas() {
+    ImGui::Begin("Canvas");
     static ImVector<ImVec2> points;
     static ImVec2 scrolling(0.0f, 0.0f);
     static bool adding_line = false;
@@ -262,14 +312,5 @@ void App::renderMaze() {
     for (int n = 0; n < points.Size; n += 2)
         draw_list->AddRectFilled(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), ImGui::ColorConvertFloat4ToU32(rectcol), rounding);
     draw_list->PopClipRect();
-    ImGui::End();
-}
-
-void App::renderInfo() {
-    ImGui::Begin("Info", &show_info);
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::Text("Maze Dimensions: (%.i, %.i)", maze->getWidth(), maze->getHeight());
-    ImGui::Text("Seed %.u", maze->getSeed());
-    ImGui::Text("Maze State: UNSOLVED");
     ImGui::End();
 }

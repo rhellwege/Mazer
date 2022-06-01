@@ -1,13 +1,17 @@
 #include "../include/Maze.h"
 
 Maze::Maze(uint w, uint h) {
+    generated = false;
+    solved = false;
     resize(w, h);
     seed = time(NULL);
 }
 
-void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); }
+void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); generated = false; solved = false; }
 bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
 bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
+bool Maze::isGenerated() {return generated;}
+bool Maze::isSolved() {return solved;}
 mnode* Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
 mnode* Maze::getNode(const uint x, const uint y) {
     mnode* node = (mnode*)(data + y * stride + x);
@@ -54,9 +58,11 @@ void Maze::unsolve() {
     for (uint i = 0; i < sizeof(data); ++i) {
         data[i] &= 0b00001111;
     }
+    solved = false;
 }
 uint Maze::getHeight() { return H; }
 uint Maze::getWidth() { return W; }
+uint Maze::getArea() { return area; }
 uint Maze::getSeed() { return seed; }
 void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 
@@ -113,19 +119,21 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
 }
 
 /* -------------------- GENERATORS -------------------- */
-void Maze::dfsGenHelper(mnode* c) {
+void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
+    ++steps;
     MNODE_VISIT(*c);
     mnode_vec neighbours = unvisitedNeighbours(c);
     SHUFFLE(neighbours);
     for (auto n : neighbours) {
         removeEdge(c, n);
-        dfsGenHelper(n);
+        dfsGenHelper(n, steps);
     }
 }
 
-void Maze::genDFS() {
-    dfsGenHelper(data + rand() % area);
+void Maze::genDFS(uint& steps) {
+    dfsGenHelper(data + rand() % area, steps);
+    generated = true;
 }
 
 mnode* Maze::setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c) {
@@ -139,7 +147,7 @@ void Maze::setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b) {
     s[aParent] = bParent;
 }
 
-void Maze::genKruskal() {
+void Maze::genKruskal(uint& steps) {
     std::vector<mnode_edge> edges;
     std::unordered_map<mnode*, mnode*> sets;
     int wallsDown = 0;
@@ -161,9 +169,11 @@ void Maze::genKruskal() {
         if (setFind(sets, cur.first) != setFind(sets, cur.second)) {
             setUnion(sets, cur.first, cur.second); // union the sets
             removeEdge(cur);
-            wallsDown++;
+            ++wallsDown;
+            ++steps;
         }
     }
+    generated = true;
 }
 
 void Maze::addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset) {
@@ -192,7 +202,7 @@ void Maze::addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordere
 
 }
 
-void Maze::genPrims() {
+void Maze::genPrims(uint& steps) {
     std::unordered_set<mnode*> mst; // minimal spanning tree
     std::deque<mnode*> frontier; // all mnodes adjacent to the mst
     std::unordered_set<mnode*> fset;
@@ -204,12 +214,14 @@ void Maze::genPrims() {
         int idx = rand() % frontier.size();
         mnode* c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
+        ++steps;
         // destroy the walls of one of the adjacent mst nodes (at random)
         MNODE_VISIT(*c);
         mnode_vec ins = visitedNeighbours(c);
         mnode* neighbour = ins[rand() % ins.size()];
         removeEdge(c, neighbour);
     }
+    generated = true;
 }
 
 /* -------------------- SOLVERS -------------------- */
@@ -232,6 +244,7 @@ bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
 
 void Maze::solveDFS(uint& steps, uint& pathLen) {
     solveDFSHelper(start, steps, pathLen);
+    solved = true;
 } 
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
@@ -257,6 +270,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
         if (current == start) break;
         MNODE_SET_PATH(*current);
     }
+    solved = true;
 }
 
 double Maze::distCell(mnode* a, mnode* b) {
@@ -300,6 +314,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         MNODE_SET_PATH(*cur);
         cur = prev[cur];
     }
+    solved = true;
 }
 
 void Maze::solveDijkstra(uint& steps, uint& pathLen) {
@@ -335,4 +350,5 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         MNODE_SET_PATH(*cur);
         cur = prev[cur];
     }
+    solved = true;
 }

@@ -40,11 +40,6 @@ std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {
     return {l.first-r.first,l.second-r.second};                                    
 }
 
-struct TreeNode {
-    mnode* ref;
-    uint weights[4];
-};
-
 class Maze {
 private:
     mnode* data, *start, *finish;
@@ -52,12 +47,15 @@ private:
     uint W, H;
     uint area;
     uint stride;
+
+    bool generated;
+    bool solved;
     
     bool inBounds(const uint x, const uint y);
     bool inBounds(const coord& c);
     
     bool solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
-    void dfsGenHelper(mnode* c);
+    void dfsGenHelper(mnode* c, uint& steps);
     double distCell(mnode* a, mnode* b);
     mnode* setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c);
     void setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b);
@@ -78,17 +76,20 @@ public:
     void resize(uint newW, uint newH);
     void unsolve();
 
+    bool isGenerated();
+    bool isSolved();
     uint getWidth();
     uint getHeight();
+    uint getArea();
     mnode* getNode(const coord& c);
     mnode* getNode(const uint x, const uint y);
     coord getCoord(mnode* m);
     uint getSeed();
     void setSeed(uint newSeed);
     
-    void genDFS();
-    void genKruskal();
-    void genPrims();
+    void genDFS(uint& steps);
+    void genKruskal(uint& steps);
+    void genPrims(uint& steps);
     
     // solvers return the amount of steps taken until it found the end (this includes the back tracking)
     void solveDFS(uint& steps, uint& pathLen);

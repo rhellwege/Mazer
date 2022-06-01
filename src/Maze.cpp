@@ -7,7 +7,13 @@ Maze::Maze(uint w, uint h) {
     seed = time(NULL);
 }
 
-void Maze::reset() { memset(data, MNODE_CLEAN, sizeof(data)); generated = false; solved = false; }
+void Maze::reset() {
+     memset(data, MNODE_CLEAN, sizeof(data)); generated = false; solved = false;
+    start = data;
+    finish = start + area - 1;
+    MNODE_SET_START(*data);
+    MNODE_SET_FINISH(*finish); 
+}
 bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
 bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
 bool Maze::isGenerated() {return generated;}
@@ -51,8 +57,7 @@ void Maze::resize(uint newW, uint newH) {
         free(data);
     data = (mnode*)malloc(area*sizeof(mnode));
     reset();
-    start = data;
-    finish = start + area;
+    
 }
 void Maze::unsolve() {
     for (uint i = 0; i < sizeof(data); ++i) {

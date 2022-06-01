@@ -15,6 +15,14 @@ static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+                                                
+ImVec2 operator+(const ImVec2 & l,const ImVec2 & r) {   
+    return {l.x+r.x,l.y+r.y};                                    
+}
+                                                
+ImVec2 operator-(const ImVec2& l,const ImVec2 & r) {   
+    return {l.x-r.x,l.y-r.y};                                    
+}
 App::App(const char* title, int width, int height) {
     window_title = title;
     window_width = width;
@@ -107,7 +115,7 @@ App::App(const char* title, int width, int height) {
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
-    cell_to_wall = 0.0f;
+    cell_to_wall = 8.0f;
 }
 
 void App::run() {
@@ -180,7 +188,7 @@ void App::renderControls() {
             len_path = 0;
         }
         // if animate generation: send to thread!
-        maze->genDFS(steps_gen);
+        maze->genKruskal(steps_gen);
         maze_generating = false;
     }
     ImGui::SameLine();
@@ -202,8 +210,58 @@ void App::renderControls() {
     ImGui::End();
 }
 
+ImU32 App::getFillCol(mnode m) {
+    
+    if (MNODE_FINISH(m)) return finish_col;
+    else if (MNODE_START(m)) return start_col;
+    else if (MNODE_PATH(m)) return path_col;
+    else if (MNODE_WASTED(m)) return wasted_col;
+    else return bg_col;
+}
+
 void App::renderMaze() {
     ImGui::Begin("Maze");
+    static ImVec2 pan(0.0f, 0.0f);
+    static float zoom = 0.0f;
+    ImGui::SliderFloat("Cell to wall ratio", &cell_to_wall, 0.5f, 10.0f);
+    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
+    ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
+    if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
+    if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
+    ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+    // Draw border and background color
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(canvas_p0, canvas_p1, wall_col);
+    // This will catch our interactions
+    ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+    const bool is_hovered = ImGui::IsItemHovered(); // Hovered
+    const bool is_active = ImGui::IsItemActive();   // Held
+    const ImVec2 origin(canvas_p0.x + pan.x, canvas_p0.y + pan.y); // Lock scrolled origin
+    const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+    ImVec2 wall_sz = {canvas_sz.x / maze->getWidth()/(2.0 + cell_to_wall), canvas_sz.y / maze->getHeight()/(2.0 + cell_to_wall)};
+    ImVec2 cell_sz = {canvas_sz.x / maze->getWidth() - 2 * wall_sz.x, canvas_sz.y / maze->getHeight() - 2 * wall_sz.y};
+    ImVec2 full_sz = {cell_sz.x + 2*wall_sz.x, cell_sz.y + 2*wall_sz.y};
+    for (uint i = 0; i < maze->getWidth(); ++i) {
+        for (uint j = 0; j < maze->getHeight(); ++j) {
+            ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
+            mnode cur = *maze->getNode(i,j);
+            draw_list->AddRectFilled(p0+wall_sz, p0+wall_sz+cell_sz, getFillCol(cur));
+            // draw walls
+            if (MNODE_GET_WALL(cur, 0)) {
+                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y), getFillCol(cur));
+            }
+            if (MNODE_GET_WALL(cur, 1)) {
+                draw_list->AddRectFilled(ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y + cell_sz.y), getFillCol(cur));
+            }
+            if (MNODE_GET_WALL(cur, 2)) {
+                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y + wall_sz.y + cell_sz.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y * 2 + cell_sz.y), getFillCol(cur));
+            }
+            if (MNODE_GET_WALL(cur, 3)) {
+                draw_list->AddRectFilled(ImVec2(p0.x, p0.y + wall_sz.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y + cell_sz.y), getFillCol(cur));
+            }
+        }
+    }
     ImGui::End();
 }
 
@@ -218,7 +276,7 @@ void App::renderInfo() {
         ImGui::Text("Maze State: UNSOLVED");
     else
         ImGui::Text("Maze State: SOLVED!");
-    ImGui::Text("Generation Progress: %.i/%.i", steps_gen, maze->getArea());
+    ImGui::Text("Generation Progress: %.i/%.i", steps_gen, maze->getArea()-1);
     if (maze->isGenerated()) {
         ImGui::Text("Solve steps: %.i", steps_solve);
         ImGui::Text("Path length: %.i", len_path);

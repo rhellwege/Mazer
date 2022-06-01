@@ -26,6 +26,10 @@ typedef std::pair<mnode*, mnode*> mnode_edge;
 #define MNODE_REMOVE_PATH(X) (X &= 0b10111111)
 #define MNODE_SET_WASTED(X)  (X |= 0b00100000)
 #define MNODE_WASTED(X)      (X &  0b00100000)
+#define MNODE_START(X)       (X &  0b00010000)
+#define MNODE_SET_START(X)   (X |= 0b00010000)
+#define MNODE_FINISH(X)      ((X &  0b11110000) == 0b11110000)
+#define MNODE_SET_FINISH(X)  (X |= 0b11110000)
 
 #define SHUFFLE(X) std::shuffle(X.begin(), X.end(), std::default_random_engine{seed})
 

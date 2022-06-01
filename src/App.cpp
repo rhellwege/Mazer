@@ -221,7 +221,8 @@ void App::renderControls() {
     }
     ImGui::SameLine();
     ImGui::Checkbox("Animate", &animate_generation);
-    
+    if (!maze->isGenerated())
+        ImGui::BeginDisabled();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Solve Algorithm", &current_solve_algo, solve_algos, IM_ARRAYSIZE(solve_algos));
         
@@ -252,7 +253,8 @@ void App::renderControls() {
     }
     ImGui::SameLine();
     ImGui::Checkbox("Animate", &animate_solving);
-    
+    if (!maze->isGenerated())
+        ImGui::EndDisabled();
     
     ImGui::SliderFloat("Animation Playback Speed", &playback_speed, 0.5f, 4.0f);
     ImGui::End();

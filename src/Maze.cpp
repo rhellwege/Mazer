@@ -14,7 +14,7 @@ void Maze::reset() {
     MNODE_SET_START(*data);
     MNODE_SET_FINISH(*finish); 
 }
-bool Maze::inBounds(uint x, uint y) { return  (x < 0 || y < 0 || x >= W || y >= H) ? false : true;}
+bool Maze::inBounds(uint x, uint y) { return !(x < 0 || y < 0 || x >= W || y >= H);}
 bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
 bool Maze::isGenerated() {return generated;}
 bool Maze::isSolved() {return solved;}

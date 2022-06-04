@@ -19,3 +19,5 @@
 #include <deque>
 #include <cfloat>
 #include <string.h>
+#include <thread>
+#include <functional>

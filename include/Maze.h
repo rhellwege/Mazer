@@ -77,7 +77,7 @@ private:
     mnode_vec visitedNeighbours(mnode* m);
     mnode_vec unvisitedNeighbours(mnode* m);
     mnode_vec accessibleNeighbours(mnode* m);
-    
+
 public:
     Maze(uint w, uint h);
     void reset();
@@ -99,10 +99,13 @@ public:
     void genDFS(uint& steps);
     void genKruskal(uint& steps);
     void genPrims(uint& steps);
-    
+
     // solvers return the amount of steps taken until it found the end (this includes the back tracking)
     void solveDFS(uint& steps, uint& pathLen);
     void solveBFS(uint& steps, uint& pathLen);
     void solveAStar(uint& steps, uint& pathLen);
     void solveDijkstra(uint& steps, uint& pathLen);
+
+    std::thread genAsync(std::string func_name, uint& steps);
+    std::thread solveAsync(std::string func_name, uint& steps, uint& pathLen);
 };

@@ -1,5 +1,18 @@
 #include "../include/Maze.h"
 
+static std::unordered_map<std::string, void (Maze::*)(uint&)> GEN_DICT = {
+    {"DFS", &Maze::genDFS},
+    {"Kruskal", &Maze::genKruskal},
+    {"Prims", &Maze::genPrims}
+};
+
+static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT = {
+    {"DFS", &Maze::solveDFS},
+    {"BFS", &Maze::solveBFS},
+    {"Dijkstra", &Maze::solveDijkstra},
+    {"A*", &Maze::solveAStar}
+};
+
 Maze::Maze(uint w, uint h) {
     generated = false;
     solved = false;
@@ -37,22 +50,6 @@ void Maze::removeEdge(mnode* a, mnode* b) {
             MNODE_REMOVE_WALL(*b, (i+2)%4);
         }
     }
-    // if (a-b == -1) {
-    //     MNODE_REMOVE_WALL(*a, EAST);
-    //     MNODE_REMOVE_WALL(*b, WEST);
-    // }
-    // else if (a-b == 1) {
-    //     MNODE_REMOVE_WALL(*a, WEST);
-    //     MNODE_REMOVE_WALL(*b, EAST);
-    // }
-    // else if (a-b == -stride) {
-    //     MNODE_REMOVE_WALL(*a, SOUTH);
-    //     MNODE_REMOVE_WALL(*b, NORTH);
-    // }
-    // else if (a-b == stride) {
-    //     MNODE_REMOVE_WALL(*a, NORTH);
-    //     MNODE_REMOVE_WALL(*b, SOUTH);
-    // }
 }
 void Maze::removeEdge(mnode_edge& e) {
     removeEdge(e.first, e.second);
@@ -136,19 +133,22 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
 
 /* -------------------- GENERATORS -------------------- */
 void Maze::dfsGenHelper(mnode* c, uint& steps) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     if (MNODE_VISITED(*c)) return;
-    ++steps;
     MNODE_VISIT(*c);
+    ++steps;
     mnode_vec neighbours = unvisitedNeighbours(c);
     SHUFFLE(neighbours);
     for (auto n : neighbours) {
-        removeEdge(c, n);
-        dfsGenHelper(n, steps);
+        if (!MNODE_VISITED(*n)) {
+            removeEdge(c, n);
+            dfsGenHelper(n, steps);
+        }
     }
 }
 
 void Maze::genDFS(uint& steps) {
-    dfsGenHelper(data + rand() % area, steps);
+    dfsGenHelper(data + (rand() % area), steps);
     generated = true;
 }
 
@@ -367,4 +367,15 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         cur = prev[cur];
     }
     solved = true;
+}
+
+std::thread Maze::genAsync(std::string func_name, uint& steps) {
+    void(Maze::*generator)(uint&) = GEN_DICT[func_name];
+    std::thread t([this, func_name, &steps, generator](){(this->*generator)(steps);});
+    return t;
+}
+std::thread Maze::solveAsync(std::string func_name, uint& steps, uint& pathLen) {
+    void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[func_name];
+    std::thread t([this, func_name, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
+    return t;
 }

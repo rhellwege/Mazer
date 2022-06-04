@@ -27,7 +27,7 @@ App::App(const char* title, int width, int height) {
     window_title = title;
     window_width = width;
     window_height = height;
-    maze = new Maze(30,30);
+    maze = new Maze(5, 5);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -109,6 +109,7 @@ App::App(const char* title, int width, int height) {
     show_maze = true;
     show_controls = true;
     show_demo = true;
+    show_menubar = true;
     animate_generation = false;
     animate_solving = false;
     playback_speed = 1.0f;
@@ -130,6 +131,8 @@ void App::run() {
         ImGui::NewFrame();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+        // if (show_menubar)
+        //     renderMenuBar();
 
         if (show_controls)
             renderControls();
@@ -204,19 +207,10 @@ void App::renderControls() {
             steps_solve = 0;
             len_path = 0;
         }
-
         // if animate generation: send to thread!
-        switch (current_gen_algo) {
-            case 0:
-                maze->genDFS(steps_gen);
-                break;
-            case 1:
-                maze->genKruskal(steps_gen);
-                break;
-            case 2:
-                maze->genPrims(steps_gen);
-                break;
-        }
+        
+        static std::thread t = maze->genAsync(gen_algos[current_gen_algo], steps_gen);
+        //if (maze->isGenerated()) t.join();
         maze_generating = false;
     }
     ImGui::SameLine();
@@ -235,20 +229,9 @@ void App::renderControls() {
             len_path = 0;
         }
         // if animate solving send to thread!
-        switch (current_solve_algo) {
-            case 0:
-                maze->solveDFS(steps_solve, len_path);
-                break;
-            case 1:
-                maze->solveBFS(steps_solve, len_path);
-                break;
-            case 2:
-                maze->solveDijkstra(steps_solve, len_path);
-                break;
-            case 3:
-                maze->solveAStar(steps_solve, len_path);
-                break;
-        }
+        
+        static std::thread t = maze->solveAsync(solve_algos[current_solve_algo], steps_solve, len_path);
+        if (maze->isSolved()) t.join();
         maze_solving = false;
     }
     ImGui::SameLine();
@@ -261,7 +244,6 @@ void App::renderControls() {
 }
 
 ImU32 App::getFillCol(mnode m) {
-    
     if (MNODE_FINISH(m)) return finish_col;
     else if (MNODE_START(m)) return start_col;
     else if (MNODE_PATH(m)) return path_col;
@@ -289,27 +271,27 @@ void App::renderMaze() {
     const bool is_active = ImGui::IsItemActive();   // Held
     const ImVec2 origin(canvas_p0.x + pan.x, canvas_p0.y + pan.y); // Lock scrolled origin
     const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    ImVec2 wall_sz = {canvas_sz.x / maze->getWidth()/(cell_to_wall), canvas_sz.y / maze->getHeight()/(cell_to_wall)};
+    ImVec2 wall_sz = {canvas_sz.x / maze->getWidth()/(cell_to_wall*2), canvas_sz.y / maze->getHeight()/(cell_to_wall*2)};
     ImVec2 cell_sz = {canvas_sz.x / maze->getWidth() - wall_sz.x, canvas_sz.y / maze->getHeight() - wall_sz.y};
-    ImVec2 full_sz = {cell_sz.x + wall_sz.x, cell_sz.y + wall_sz.y};
+    ImVec2 full_sz = cell_sz + wall_sz;
     for (uint i = 0; i < maze->getWidth(); ++i) {
         for (uint j = 0; j < maze->getHeight(); ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
-            ImVec2 p1 = p0 + wall_sz + cell_sz;
+            ImVec2 p1 = p0 + wall_sz + cell_sz + cell_sz;
             mnode cur = *maze->getNode(i,j);
             draw_list->AddRectFilled(p0+wall_sz, p0+wall_sz+cell_sz, getFillCol(cur));
             // draw walls
             if (!MNODE_GET_WALL(cur, 0)) {
-                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y), getFillCol(cur));
+                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y), ImVec2(p1.x - wall_sz.x, p0.y + wall_sz.y), getFillCol(cur));
             }
             if (!MNODE_GET_WALL(cur, 1)) {
-                draw_list->AddRectFilled(ImVec2(p0.x + cell_sz.x + wall_sz.x, p0.y + wall_sz.y), ImVec2(p0.x + wall_sz.x, p0.y + wall_sz.y + cell_sz.y), getFillCol(cur));
+                draw_list->AddRectFilled(ImVec2(p1.x - wall_sz.x, p0.y + wall_sz.y), ImVec2(p1.x, p1.y - wall_sz.y), getFillCol(cur));
             }
             if (!MNODE_GET_WALL(cur, 2)) {
-                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y + wall_sz.y + cell_sz.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y * 2 + cell_sz.y), getFillCol(cur));
+                draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p1.y - wall_sz.y), ImVec2(p1.x - wall_sz.x, p1.y), getFillCol(cur));
             }
             if (!MNODE_GET_WALL(cur, 3)) {
-                draw_list->AddRectFilled(ImVec2(p0.x, p0.y + wall_sz.y), ImVec2(p0.x + cell_sz.x, p0.y + wall_sz.y + cell_sz.y), getFillCol(cur));
+                draw_list->AddRectFilled(ImVec2(p0.x, p1.y - wall_sz.y), ImVec2(p0.x + cell_sz.x, p1.y - wall_sz.y), getFillCol(cur));
             }
         }
     }
@@ -332,8 +314,20 @@ void App::renderInfo() {
         ImGui::Text("Solve steps: %.i", steps_solve);
         ImGui::Text("Path length: %.i", len_path);
     }
-    
     ImGui::End();
+}
+
+void App::renderMenuBar() {
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Export Maze")) {
+                std::cout << "Exporting maze..." << std::endl;
+            }
+            if (ImGui::MenuItem("Import Maze")) {
+                std::cout << "Exporting maze..." << std::endl;
+            }
+        }
+    }
 }
 
 void renderTestCanvas() {

@@ -106,6 +106,6 @@ public:
     void solveAStar(uint& steps, uint& pathLen);
     void solveDijkstra(uint& steps, uint& pathLen);
 
-    std::thread genAsync(std::string func_name, uint& steps);
-    std::thread solveAsync(std::string func_name, uint& steps, uint& pathLen);
+    void generate(const std::string& funcName, uint& steps);
+    void solve(const std::string& funcName, uint& steps, uint& pathLen);
 };

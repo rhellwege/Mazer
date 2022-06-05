@@ -117,6 +117,7 @@ App::App(const char* title, int width, int height) {
     steps_solve = 0;
     len_path = 0;
     cell_to_wall = 8.0f;
+    executor = nullptr;
 }
 
 void App::run() {
@@ -189,10 +190,10 @@ void App::renderControls() {
         len_path = 0;
     }
 
-    const char* gen_algos[] = {"DFS", "Kruskal", "Prim's"};
+    static const char* gen_algos[] = {"DFS", "Kruskal", "Prim's"};
     static int current_gen_algo = 0;
 
-    const char* solve_algos[] = {"DFS", "BFS", "Dijkstra", "A*"};
+    static const char* solve_algos[] = {"DFS", "BFS", "Dijkstra", "A*"};
     static int current_solve_algo = 0;
 
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
@@ -208,8 +209,11 @@ void App::renderControls() {
             len_path = 0;
         }
         // if animate generation: send to thread!
-        
-        static std::thread t = maze->genAsync(gen_algos[current_gen_algo], steps_gen);
+        if (executor != nullptr) 
+            delete executor;
+        std::string func = gen_algos[current_gen_algo];
+        auto lmbda = [this, func](){maze->generate(func, this->steps_gen);};
+        executor = new std::thread(lmbda);
         //if (maze->isGenerated()) t.join();
         maze_generating = false;
     }
@@ -230,8 +234,8 @@ void App::renderControls() {
         }
         // if animate solving send to thread!
         
-        static std::thread t = maze->solveAsync(solve_algos[current_solve_algo], steps_solve, len_path);
-        if (maze->isSolved()) t.join();
+        //static std::thread t = maze->solveAsync(solve_algos[current_solve_algo], steps_solve, len_path);
+        //if (maze->isSolved()) t.join();
         maze_solving = false;
     }
     ImGui::SameLine();

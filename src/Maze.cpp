@@ -369,13 +369,23 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
     solved = true;
 }
 
-std::thread Maze::genAsync(std::string func_name, uint& steps) {
-    void(Maze::*generator)(uint&) = GEN_DICT[func_name];
-    std::thread t([this, func_name, &steps, generator](){(this->*generator)(steps);});
-    return t;
+void Maze::generate(const std::string& funcName, uint& steps) {
+    void(Maze::*generator)(uint&) = GEN_DICT[funcName];
+    (this->*generator)(steps);
 }
-std::thread Maze::solveAsync(std::string func_name, uint& steps, uint& pathLen) {
-    void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[func_name];
-    std::thread t([this, func_name, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
-    return t;
+
+void Maze::solve(const std::string& funcName, uint& steps, uint& pathLen) {
+    void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[funcName];
+    (this->*solver)(steps, pathLen);
 }
+
+// std::thread Maze::genAsync(std::string func_name, uint& steps) {
+//     void(Maze::*generator)(uint&) = GEN_DICT[func_name];
+//     std::thread t([this, func_name, &steps, generator](){(this->*generator)(steps);});
+//     return t;
+// }
+// std::thread Maze::solveAsync(std::string func_name, uint& steps, uint& pathLen) {
+//     void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[func_name];
+//     std::thread t([this, func_name, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
+//     return t;
+// }

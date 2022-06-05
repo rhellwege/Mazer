@@ -32,8 +32,8 @@ private:
     uint len_path;
     float cell_to_wall;
     ImU32 getFillCol(mnode m);
+    std::thread* executor;
 
-    static void callMazeFunc();
 public:
     App(const char* title, int width, int height);
     ~App();

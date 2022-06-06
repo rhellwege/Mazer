@@ -3,7 +3,8 @@
 static std::unordered_map<std::string, void (Maze::*)(uint&)> GEN_DICT = {
     {"DFS", &Maze::genDFS},
     {"Kruskal", &Maze::genKruskal},
-    {"Prims", &Maze::genPrims}
+    {"Prims", &Maze::genPrims},
+    {"Prim's", &Maze::genPrims},
 };
 
 static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT = {
@@ -133,17 +134,15 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
 
 /* -------------------- GENERATORS -------------------- */
 void Maze::dfsGenHelper(mnode* c, uint& steps) {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
     ++steps;
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     mnode_vec neighbours = unvisitedNeighbours(c);
-    SHUFFLE(neighbours);
-    for (auto n : neighbours) {
-        if (!MNODE_VISITED(*n)) {
-            removeEdge(c, n);
-            dfsGenHelper(n, steps);
-        }
+    mnode* n = neighbours[rand()%neighbours.size()];
+    if (!MNODE_VISITED(*n)) {
+        removeEdge(c, n);
+        dfsGenHelper(n, steps);
     }
 }
 
@@ -187,6 +186,7 @@ void Maze::genKruskal(uint& steps) {
             removeEdge(cur);
             ++wallsDown;
             ++steps;
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         }
     }
     generated = true;
@@ -231,6 +231,7 @@ void Maze::genPrims(uint& steps) {
         mnode* c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
         ++steps;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         // destroy the walls of one of the adjacent mst nodes (at random)
         MNODE_VISIT(*c);
         mnode_vec ins = visitedNeighbours(c);
@@ -243,6 +244,7 @@ void Maze::genPrims(uint& steps) {
 /* -------------------- SOLVERS -------------------- */
 bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
     ++steps;
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
     ++pathLen;
     if (c == finish) return true;
     if (MNODE_PATH(*c)) return false;
@@ -269,11 +271,12 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
     mnode* current = start;
     while (current != finish) {
         ++steps;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         if (current != start)
             MNODE_SET_WASTED(*current);
         mnode_vec neighbours = accessibleNeighbours(current);
         for (auto neighbour : neighbours) {
-            if (!MNODE_WASTED(*current))  {
+            if (!MNODE_WASTED(*neighbour) && neighbour != start)  {
                 q.push(neighbour);
                 path[neighbour] = current;
             }
@@ -313,6 +316,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         if (u != start)
             MNODE_SET_WASTED(*u);
         ++steps;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
@@ -339,7 +343,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
     std::priority_queue<std::pair<unsigned int, mnode*>, std::vector<std::pair<unsigned int, mnode*>>, std::greater<std::pair<unsigned int, mnode*>>> pq;
     distance[start] = 0;
     for (uint i = 0; i < area; ++i) {
-        if (data + i!=start)distance[data + i] = INT_MAX;
+        if (data + i != start) distance[data + i] = INT_MAX;
     }
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {

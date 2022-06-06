@@ -56,7 +56,7 @@ private:
     uint W, H;
     uint area;
     uint stride;
-
+    
     bool generated;
     bool solved;
     
@@ -77,8 +77,12 @@ private:
     mnode_vec visitedNeighbours(mnode* m);
     mnode_vec unvisitedNeighbours(mnode* m);
     mnode_vec accessibleNeighbours(mnode* m);
+    mnode* randomNeighbor(mnode* m);
+
 
 public:
+    int delay;
+
     Maze(uint w, uint h);
     void reset();
 

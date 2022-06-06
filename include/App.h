@@ -26,13 +26,14 @@ private:
     bool maze_solving;
     bool animate_generation;
     bool animate_solving;
-    float playback_speed;
     uint steps_gen;
     uint steps_solve;
     uint len_path;
     float cell_to_wall;
     ImU32 getFillCol(mnode m);
     std::thread* executor;
+
+    void stopExecution();
 
 public:
     App(const char* title, int width, int height);

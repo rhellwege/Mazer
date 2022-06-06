@@ -27,7 +27,7 @@ App::App(const char* title, int width, int height) {
     window_title = title;
     window_width = width;
     window_height = height;
-    maze = new Maze(5, 5);
+    maze = new Maze(50,50);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -112,11 +112,10 @@ App::App(const char* title, int width, int height) {
     show_menubar = true;
     animate_generation = false;
     animate_solving = false;
-    playback_speed = 1.0f;
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
-    cell_to_wall = 8.0f;
+    cell_to_wall = 1.0f;
     executor = nullptr;
 }
 
@@ -181,9 +180,18 @@ App::~App() {
     free(maze);
 }
 
+void App::stopExecution() {
+    if (executor != nullptr) {
+        executor->detach();
+        delete executor;
+        executor = nullptr;
+    }
+}
+
 void App::renderControls() {
     ImGui::Begin("Controls", &show_controls);
     if (ImGui::Button("Reset")) {
+        stopExecution();
         maze->reset();
         steps_gen = 0;
         steps_solve = 0;
@@ -202,15 +210,14 @@ void App::renderControls() {
     ImGui::SameLine();
     if (ImGui::Button("Generate") && !maze_generating) {
         maze_generating = true;
-        if (maze->isGenerated()) {
-            maze->reset();
-            steps_gen = 0;
-            steps_solve = 0;
-            len_path = 0;
-        }
+        
+        maze->reset();
+        steps_gen = 0;
+        steps_solve = 0;
+        len_path = 0;
+
         // if animate generation: send to thread!
-        if (executor != nullptr) 
-            delete executor;
+        stopExecution();
         std::string func = gen_algos[current_gen_algo];
         auto lmbda = [this, func](){maze->generate(func, this->steps_gen);};
         executor = new std::thread(lmbda);
@@ -233,7 +240,10 @@ void App::renderControls() {
             len_path = 0;
         }
         // if animate solving send to thread!
-        
+        stopExecution();
+        std::string func = solve_algos[current_solve_algo];
+        auto lmbda = [this, func](){maze->solve(func, this->steps_solve, this->len_path);};
+        executor = new std::thread(lmbda);
         //static std::thread t = maze->solveAsync(solve_algos[current_solve_algo], steps_solve, len_path);
         //if (maze->isSolved()) t.join();
         maze_solving = false;
@@ -243,7 +253,7 @@ void App::renderControls() {
     if (!maze->isGenerated())
         ImGui::EndDisabled();
     
-    ImGui::SliderFloat("Animation Playback Speed", &playback_speed, 0.5f, 4.0f);
+    ImGui::SliderInt("Animation Delay", &maze->delay, 0, 2000);
     ImGui::End();
 }
 

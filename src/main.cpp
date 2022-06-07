@@ -1,9 +1,8 @@
 #include "App.h"
-#define WINDOW_TITLE "Mazer GUI"
-#define WINDOW_DIMENSIONS 1200, 720
+#include "settings.h"
 
 int main(int, char**) {
-    App myApp(WINDOW_TITLE, WINDOW_DIMENSIONS);
+    App myApp(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
     myApp.run();
     return 0;
 }

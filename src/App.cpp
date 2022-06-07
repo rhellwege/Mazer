@@ -1,4 +1,5 @@
-#include "../include/App.h"
+#include "App.h"
+#include "settings.h"
 #include <bitset>
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -27,7 +28,7 @@ App::App(const char* title, int width, int height) {
     window_title = title;
     window_width = width;
     window_height = height;
-    maze = new Maze(50,50);
+    maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -203,6 +204,15 @@ void App::renderControls() {
 
     static const char* solve_algos[] = {"DFS", "BFS", "Dijkstra", "A*"};
     static int current_solve_algo = 0;
+    
+    static int maze_dimensions[2];
+    maze_dimensions[0] = maze->getWidth();
+    maze_dimensions[1] = maze->getHeight();
+
+    if (ImGui::InputInt2("Maze Dimensions", maze_dimensions) && maze_dimensions[0] > 0 && maze_dimensions[1] > 0) {
+        stopExecution();
+        maze->resize(maze_dimensions[0], maze_dimensions[1]);
+    }
 
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Generation Algorithm", &current_gen_algo, gen_algos, IM_ARRAYSIZE(gen_algos));

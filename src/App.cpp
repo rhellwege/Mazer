@@ -109,15 +109,13 @@ App::App(const char* title, int width, int height) {
     show_info = true;
     show_maze = true;
     show_controls = true;
-    show_demo = true;
+    show_demo = false;
     show_menubar = true;
-    animate_generation = false;
-    animate_solving = false;
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
     cell_to_wall = 1.0f;
-    executor = nullptr;
+    timescale = 0.0f;
 }
 
 void App::run() {
@@ -181,22 +179,10 @@ App::~App() {
     free(maze);
 }
 
-void App::stopExecution() {
-    if (executor != nullptr) {
-        executor->detach();
-        delete executor;
-        executor = nullptr;
-    }
-}
-
 void App::renderControls() {
     ImGui::Begin("Controls", &show_controls);
     if (ImGui::Button("Reset")) {
-        stopExecution();
-        maze->reset();
-        steps_gen = 0;
-        steps_solve = 0;
-        len_path = 0;
+        resetMaze();
     }
 
     static const char* gen_algos[] = {"DFS", "Kruskal", "Prim's"};
@@ -210,10 +196,10 @@ void App::renderControls() {
     maze_dimensions[1] = maze->getHeight();
 
     if (ImGui::InputInt2("Maze Dimensions", maze_dimensions) && maze_dimensions[0] > 0 && maze_dimensions[1] > 0) {
-        stopExecution();
+        resetMaze();
         maze->resize(maze_dimensions[0], maze_dimensions[1]);
     }
-
+    ImGui::Checkbox("Animate", &maze->isAsync);
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Generation Algorithm", &current_gen_algo, gen_algos, IM_ARRAYSIZE(gen_algos));
 
@@ -221,21 +207,12 @@ void App::renderControls() {
     if (ImGui::Button("Generate") && !maze_generating) {
         maze_generating = true;
         
-        maze->reset();
-        steps_gen = 0;
-        steps_solve = 0;
-        len_path = 0;
-
-        // if animate generation: send to thread!
-        stopExecution();
+        resetMaze();
         std::string func = gen_algos[current_gen_algo];
-        auto lmbda = [this, func](){maze->generate(func, this->steps_gen);};
-        executor = new std::thread(lmbda);
+        maze->generate(func, this->steps_gen);
         //if (maze->isGenerated()) t.join();
         maze_generating = false;
     }
-    ImGui::SameLine();
-    ImGui::Checkbox("Animate", &animate_generation);
     if (!maze->isGenerated())
         ImGui::BeginDisabled();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
@@ -250,20 +227,18 @@ void App::renderControls() {
             len_path = 0;
         }
         // if animate solving send to thread!
-        stopExecution();
+        maze->unsolve();
         std::string func = solve_algos[current_solve_algo];
-        auto lmbda = [this, func](){maze->solve(func, this->steps_solve, this->len_path);};
-        executor = new std::thread(lmbda);
-        //static std::thread t = maze->solveAsync(solve_algos[current_solve_algo], steps_solve, len_path);
-        //if (maze->isSolved()) t.join();
+        maze->solve(func, this->steps_solve, this->len_path);
         maze_solving = false;
     }
-    ImGui::SameLine();
-    ImGui::Checkbox("Animate", &animate_solving);
     if (!maze->isGenerated())
         ImGui::EndDisabled();
     
-    ImGui::SliderInt("Animation Delay", &maze->delay, 0, 2000);
+    if (ImGui::SliderFloat("Animation Delay", &timescale, -1.0f, 1.0f)) {
+        maze->delay = DEFAULT_DELAY - timescale*DEFAULT_DELAY;
+    }
+
     ImGui::End();
 }
 
@@ -301,7 +276,7 @@ void App::renderMaze() {
     for (uint i = 0; i < maze->getWidth(); ++i) {
         for (uint j = 0; j < maze->getHeight(); ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
-            ImVec2 p1 = p0 + wall_sz + cell_sz + cell_sz;
+            ImVec2 p1 = p0 + wall_sz + cell_sz + wall_sz;
             mnode cur = *maze->getNode(i,j);
             draw_list->AddRectFilled(p0+wall_sz, p0+wall_sz+cell_sz, getFillCol(cur));
             // draw walls
@@ -440,4 +415,11 @@ void renderTestCanvas() {
         draw_list->AddRectFilled(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), ImGui::ColorConvertFloat4ToU32(rectcol), rounding);
     draw_list->PopClipRect();
     ImGui::End();
+}
+
+inline void App::resetMaze() {
+    maze->reset();
+    steps_gen = 0;
+    steps_solve = 0;
+    len_path = 0;
 }

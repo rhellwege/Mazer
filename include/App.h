@@ -24,16 +24,13 @@ private:
     bool show_menubar;
     bool maze_generating;
     bool maze_solving;
-    bool animate_generation;
-    bool animate_solving;
     uint steps_gen;
     uint steps_solve;
     uint len_path;
     float cell_to_wall;
+    float timescale;
     ImU32 getFillCol(mnode m);
-    std::thread* executor;
-
-    void stopExecution();
+    inline void resetMaze();
 
 public:
     App(const char* title, int width, int height);

@@ -4,3 +4,4 @@
 #define WINDOW_TITLE "Mazer GUI"
 #define MAZE_WIDTH 10
 #define MAZE_HEIGHT 10
+#define DEFAULT_DELAY 300

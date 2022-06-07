@@ -1,4 +1,10 @@
-#include "../include/Maze.h"
+#include "Maze.h"
+#include "settings.h"
+
+#define TICK ++steps;\
+    if (isAsync)\
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));\
+    if (isAsync && !executing) return;\
 
 static std::unordered_map<std::string, void (Maze::*)(uint&)> GEN_DICT = {
     {"DFS", &Maze::genDFS},
@@ -19,15 +25,26 @@ Maze::Maze(uint w, uint h) {
     solved = false;
     resize(w, h);
     seed = time(NULL);
+    delay = DEFAULT_DELAY;
+    isAsync = false;
+    executing = false;
 }
 
 void Maze::reset() {
+    if (executing)
+        stopAnimation();
     memset(data, MNODE_CLEAN, area); generated = false; solved = false;
     start = data;
     finish = start + area - 1;
     MNODE_SET_START(*data);
     MNODE_SET_FINISH(*finish); 
 }
+
+void Maze::stopAnimation() {
+    executing = false;
+    ft.wait();
+}
+
 bool Maze::inBounds(uint x, uint y) { return !(x < 0 || y < 0 || x >= W || y >= H);}
 bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
 bool Maze::isGenerated() {return generated;}
@@ -52,6 +69,7 @@ void Maze::removeEdge(mnode* a, mnode* b) {
         }
     }
 }
+
 void Maze::removeEdge(mnode_edge& e) {
     removeEdge(e.first, e.second);
 }
@@ -79,6 +97,7 @@ uint Maze::getWidth() { return W; }
 uint Maze::getArea() { return area; }
 uint Maze::getSeed() { return seed; }
 void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
+void Maze::resetSeed() {seed = time(NULL);}
 
 mnode_vec Maze::allNeighbours(mnode* m) {
     mnode_vec v;
@@ -136,19 +155,20 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
 void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
-    ++steps;
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+    TICK
     mnode_vec neighbours = unvisitedNeighbours(c);
-    mnode* n = neighbours[rand()%neighbours.size()];
-    if (!MNODE_VISITED(*n)) {
-        removeEdge(c, n);
-        dfsGenHelper(n, steps);
+    while (neighbours.size()) {
+        mnode* r = neighbours[rand() % neighbours.size()];
+        removeEdge(c, r);
+        dfsGenHelper(r, steps);
+        mnode_vec neighbours = unvisitedNeighbours(c);
     }
 }
 
 void Maze::genDFS(uint& steps) {
     dfsGenHelper(data + (rand() % area), steps);
     generated = true;
+    executing = false;
 }
 
 mnode* Maze::setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c) {
@@ -185,11 +205,11 @@ void Maze::genKruskal(uint& steps) {
             setUnion(sets, cur.first, cur.second); // union the sets
             removeEdge(cur);
             ++wallsDown;
-            ++steps;
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+            TICK
         }
     }
     generated = true;
+    executing = false;
 }
 
 void Maze::addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset) {
@@ -230,8 +250,7 @@ void Maze::genPrims(uint& steps) {
         int idx = rand() % frontier.size();
         mnode* c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
-        ++steps;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        TICK
         // destroy the walls of one of the adjacent mst nodes (at random)
         MNODE_VISIT(*c);
         mnode_vec ins = visitedNeighbours(c);
@@ -239,30 +258,30 @@ void Maze::genPrims(uint& steps) {
         removeEdge(c, neighbour);
     }
     generated = true;
+    executing = false;
 }
 
 /* -------------------- SOLVERS -------------------- */
-bool Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
-    ++steps;
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+void Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
+    TICK
     ++pathLen;
-    if (c == finish) return true;
-    if (MNODE_PATH(*c)) return false;
+    if (c == finish) return;
+    if (MNODE_PATH(*c)) return;
     if (c != start)
         MNODE_SET_PATH(*c);
     mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible) 
-        if (solveDFSHelper(n, steps, pathLen)) return true;
+        solveDFSHelper(n, steps, pathLen);
     if (c != start) {
         MNODE_SET_WASTED(*c);
         --pathLen;
     }
-    return false;
 }
 
 void Maze::solveDFS(uint& steps, uint& pathLen) {
     solveDFSHelper(start, steps, pathLen);
     solved = true;
+    executing = false;
 } 
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
@@ -270,8 +289,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
     std::unordered_map<mnode*, mnode*> path;
     mnode* current = start;
     while (current != finish) {
-        ++steps;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        TICK
         if (current != start)
             MNODE_SET_WASTED(*current);
         mnode_vec neighbours = accessibleNeighbours(current);
@@ -290,6 +308,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
         MNODE_SET_PATH(*current);
     }
     solved = true;
+    executing = false;
 }
 
 double Maze::distCell(mnode* a, mnode* b) {
@@ -315,8 +334,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         }
         if (u != start)
             MNODE_SET_WASTED(*u);
-        ++steps;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        TICK
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
@@ -335,6 +353,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         cur = prev[cur];
     }
     solved = true;
+    executing = false;
 }
 
 void Maze::solveDijkstra(uint& steps, uint& pathLen) {
@@ -353,6 +372,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         }
         if (u != start)
             MNODE_SET_WASTED(*u);
+        TICK
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
@@ -371,25 +391,27 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         cur = prev[cur];
     }
     solved = true;
+    executing = false;
 }
 
 void Maze::generate(const std::string& funcName, uint& steps) {
+    resetSeed();
     void(Maze::*generator)(uint&) = GEN_DICT[funcName];
-    (this->*generator)(steps);
+    // handle async
+    executing = true;
+    if (isAsync) {
+        ft = std::async(std::launch::async, [this, &steps, generator](){(this->*generator)(steps);});
+    }
+    else
+        (this->*generator)(steps);
 }
 
 void Maze::solve(const std::string& funcName, uint& steps, uint& pathLen) {
     void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[funcName];
-    (this->*solver)(steps, pathLen);
+    executing = true;
+    if (isAsync) {
+        ft = std::async(std::launch::async, [this, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
+    }
+    else  
+        (this->*solver)(steps, pathLen);
 }
-
-// std::thread Maze::genAsync(std::string func_name, uint& steps) {
-//     void(Maze::*generator)(uint&) = GEN_DICT[func_name];
-//     std::thread t([this, func_name, &steps, generator](){(this->*generator)(steps);});
-//     return t;
-// }
-// std::thread Maze::solveAsync(std::string func_name, uint& steps, uint& pathLen) {
-//     void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[func_name];
-//     std::thread t([this, func_name, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
-//     return t;
-// }

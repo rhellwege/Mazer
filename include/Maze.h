@@ -63,7 +63,7 @@ private:
     bool inBounds(const uint x, const uint y);
     bool inBounds(const coord& c);
     
-    bool solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
+    void solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
     void dfsGenHelper(mnode* c, uint& steps);
     double distCell(mnode* a, mnode* b);
     mnode* setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c);
@@ -79,9 +79,14 @@ private:
     mnode_vec accessibleNeighbours(mnode* m);
     mnode* randomNeighbor(mnode* m);
 
-
 public:
     int delay;
+    bool isAsync;
+    bool executing;
+
+    std::future<void> ft;
+
+    void stopAnimation();
 
     Maze(uint w, uint h);
     void reset();
@@ -99,6 +104,7 @@ public:
     coord getCoord(mnode* m);
     uint getSeed();
     void setSeed(uint newSeed);
+    void resetSeed();
     
     void genDFS(uint& steps);
     void genKruskal(uint& steps);

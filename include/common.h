@@ -19,5 +19,6 @@
 #include <deque>
 #include <cfloat>
 #include <string.h>
+#include <future>
 #include <thread>
 #include <functional>

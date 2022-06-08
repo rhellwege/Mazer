@@ -36,6 +36,7 @@ void Maze::reset() {
     memset(data, MNODE_CLEAN, area); generated = false; solved = false;
     start = data;
     finish = start + area - 1;
+    activeNode = start;
     MNODE_SET_START(*data);
     MNODE_SET_FINISH(*finish); 
 }
@@ -141,11 +142,10 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
+        if (MNODE_GET_WALL(*m, i)) continue;
         coord newCoord = c + DIRECTIONS[i];
         if (inBounds(newCoord)) {
-            mnode* newNode = getNode(newCoord);
-            if (!MNODE_GET_WALL(*newNode, i))
-                v.push_back(newNode);
+            v.push_back(getNode(newCoord));
         }
     }
     return v;
@@ -171,6 +171,7 @@ void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
     TICK
+    activeNode = c;
     mnode* neighbour = randomUnvisited(c);
     while (neighbour != nullptr) {
         removeEdge(c, neighbour);
@@ -220,6 +221,7 @@ void Maze::genKruskal(uint& steps) {
             removeEdge(cur);
             ++wallsDown;
             TICK
+            activeNode = cur.first;
         }
     }
     generated = true;
@@ -265,6 +267,7 @@ void Maze::genPrims(uint& steps) {
         mnode* c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
         TICK
+        activeNode = c;
         // destroy the walls of one of the adjacent mst nodes (at random)
         MNODE_VISIT(*c);
         mnode_vec ins = visitedNeighbours(c);
@@ -277,16 +280,23 @@ void Maze::genPrims(uint& steps) {
 
 /* -------------------- SOLVERS -------------------- */
 void Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
+    if (solved) return;
     TICK
+    activeNode = c;
     ++pathLen;
-    if (c == finish) return;
+    if (c == finish) {
+        solved = true;
+        return;
+    }   
     if (MNODE_PATH(*c)) return;
     if (c != start)
         MNODE_SET_PATH(*c);
     mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible) 
-        solveDFSHelper(n, steps, pathLen);
+        if (MNODE_FINISH(*n) || !MNODE_PATH(*n)) solveDFSHelper(n, steps, pathLen);
+    if (solved) return;
     if (c != start) {
+        MNODE_REMOVE_PATH(*c);
         MNODE_SET_WASTED(*c);
         --pathLen;
     }
@@ -304,6 +314,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
     mnode* current = start;
     while (current != finish) {
         TICK
+        activeNode = current;
         if (current != start)
             MNODE_SET_WASTED(*current);
         mnode_vec neighbours = accessibleNeighbours(current);
@@ -317,6 +328,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
     }
     while (current != start) {
         ++pathLen;
+        activeNode = current;
         current = path[current];
         if (current == start) break;
         MNODE_SET_PATH(*current);
@@ -349,6 +361,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         if (u != start)
             MNODE_SET_WASTED(*u);
         TICK
+        activeNode = u;
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
@@ -362,6 +375,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
     // color path
     mnode* cur = prev[finish];
     while (cur != start) {
+        activeNode = cur;
         ++pathLen;
         MNODE_SET_PATH(*cur);
         cur = prev[cur];
@@ -387,6 +401,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         if (u != start)
             MNODE_SET_WASTED(*u);
         TICK
+        activeNode = u;
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
@@ -401,6 +416,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
     // color path
     mnode* cur = prev[finish];
     while (cur != start) {
+        activeNode = cur;
         MNODE_SET_PATH(*cur);
         cur = prev[cur];
     }

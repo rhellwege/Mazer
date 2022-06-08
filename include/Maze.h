@@ -83,6 +83,7 @@ public:
     int delay;
     bool isAsync;
     bool executing;
+    mnode* activeNode;
 
     std::future<void> ft;
 

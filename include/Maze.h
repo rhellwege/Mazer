@@ -77,7 +77,7 @@ private:
     mnode_vec visitedNeighbours(mnode* m);
     mnode_vec unvisitedNeighbours(mnode* m);
     mnode_vec accessibleNeighbours(mnode* m);
-    mnode* randomNeighbor(mnode* m);
+    mnode* randomUnvisited(mnode* m);
 
 public:
     int delay;

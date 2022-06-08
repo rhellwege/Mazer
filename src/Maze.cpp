@@ -151,17 +151,31 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
     return v;
 }
 
+mnode* Maze::randomUnvisited(mnode* m) {
+    mnode_vec v;
+    coord c = getCoord(m);
+    for (int i = 0; i < 4; ++i) {
+        coord newCoord = c + DIRECTIONS[i];
+        if (inBounds(newCoord)) {
+            mnode* newNode = getNode(newCoord);
+            if (!MNODE_VISITED(*(getNode(newCoord))))
+                v.push_back(newNode);
+        }
+    }
+    if (v.size() == 0) return nullptr;
+    return v[rand() % v.size()];
+}
+
 /* -------------------- GENERATORS -------------------- */
 void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
     TICK
-    mnode_vec neighbours = unvisitedNeighbours(c);
-    while (neighbours.size()) {
-        mnode* r = neighbours[rand() % neighbours.size()];
-        removeEdge(c, r);
-        dfsGenHelper(r, steps);
-        mnode_vec neighbours = unvisitedNeighbours(c);
+    mnode* neighbour = randomUnvisited(c);
+    while (neighbour != nullptr) {
+        removeEdge(c, neighbour);
+        dfsGenHelper(neighbour, steps);
+        neighbour = randomUnvisited(c);
     }
 }
 

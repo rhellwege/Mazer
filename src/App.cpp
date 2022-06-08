@@ -12,6 +12,13 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
+
+#define PI 3.14159265358979
+#define TWO_PI PI*2
+#define HALF_PI PI/2
+#define THREE_PI_OVER_TWO 3*PI/2
+#define RD 0.01745329
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -111,16 +118,17 @@ App::App(const char* title, int width, int height) {
     show_controls = true;
     show_demo = false;
     show_menubar = true;
+    show_raycast = true;
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
     cell_to_wall = 1.0f;
     timescale = 0.0f;
+    player = {0.5f, 0.5f, 0.0f};
 }
 
 void App::run() {
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         // Poll and handle events (inputs, window resize, etc.)
         glfwPollEvents();
 
@@ -144,6 +152,9 @@ void App::run() {
 
         if (show_maze)
             renderMaze();
+
+        if (show_raycast)
+            renderRayCast();
 
         // Rendering
         ImGui::Render();
@@ -309,11 +320,10 @@ void App::renderMaze() {
     }
     // draw grid
     draw_list->AddRectFilled(canvas_p0, canvas_p1, wall_col);
-    uint minx, miny, maxx, maxy;
-    minx = std::max(0,(int)((canvas_p0.x - origin.x)/full_sz.x));
-    miny = std::max(0,(int)((canvas_p0.y - origin.y)/full_sz.y));
-    maxx = std::max(0,std::min((int)maze->getWidth(),(int)ceil((canvas_p1.x - origin.x)/full_sz.x)));
-    maxy = std::max(0,std::min((int)maze->getHeight(),(int)ceil((canvas_p1.y - origin.y)/full_sz.y)));
+    uint minx = std::max(0,(int)((canvas_p0.x - origin.x)/full_sz.x));
+    uint miny = std::max(0,(int)((canvas_p0.y - origin.y)/full_sz.y));
+    uint maxx = std::max(0,std::min((int)maze->getWidth(),(int)ceil((canvas_p1.x - origin.x)/full_sz.x)));
+    uint maxy = std::max(0,std::min((int)maze->getHeight(),(int)ceil((canvas_p1.y - origin.y)/full_sz.y)));
     for (uint i = minx; i < maxx; ++i) {
         for (uint j = miny; j < maxy; ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
@@ -380,96 +390,6 @@ void App::renderMenuBar() {
     }
 }
 
-void renderTestCanvas() {
-    ImGui::Begin("Canvas");
-    static ImVector<ImVec2> points;
-    static ImVec2 scrolling(0.0f, 0.0f);
-    static bool adding_line = false;
-    static float rounding = 0.0f;
-    static float gridstep = 64.0f;
-    static ImVec4 rectcol = {1.0f, 1.0f, 1.0f, 1.0f};
-    ImGui::SliderFloat("rectangle rounding", &rounding, 0.0f, 100.0f); 
-    ImGui::SliderFloat("gridsize", &gridstep, 0.0f, 100.0f);
-    // Typically you would use a BeginChild()/EndChild() pair to benefit from a clipping region + own scrolling.
-    // Here we demonstrate that this can be replaced by simple offsetting + custom drawing + PushClipRect/PopClipRect() calls.
-    // To use a child window instead we could use, e.g:
-    //      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));      // Disable padding
-    //      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(50, 50, 50, 255));  // Set a background color
-    //      ImGui::BeginChild("canvas", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_NoMove);
-    //      ImGui::PopStyleColor();
-    //      ImGui::PopStyleVar();
-    //      [...]
-    //      ImGui::EndChild();
-    // Using InvisibleButton() as a convenience 1) it will advance the layout cursor and 2) allows us to use IsItemHovered()/IsItemActive()
-    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
-    ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
-    if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
-    if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
-    ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
-    
-    // Draw border and background color
-    ImGuiIO& io = ImGui::GetIO();
-    std::cout << io.MouseWheel << std::endl;
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
-    draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
-    // This will catch our interactions
-    ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
-    const bool is_hovered = ImGui::IsItemHovered(); // Hovered
-    const bool is_active = ImGui::IsItemActive();   // Held
-    const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y); // Lock scrolled origin
-    const ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    
-    // Add first and second point
-    if (is_hovered && !adding_line && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-    {
-        points.push_back(mouse_pos_in_canvas);
-        points.push_back(mouse_pos_in_canvas);
-        adding_line = true;
-    }
-    if (adding_line)
-    {
-        points.back() = mouse_pos_in_canvas;
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-            adding_line = false;
-    }
-    // Pan (we use a zero mouse threshold when there's no context menu)
-    // You may decide to make that threshold dynamic based on whether the mouse is hovering something etc.
-    const float mouse_threshold_for_pan = -1.0f;
-    if (is_active && ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan))
-    {
-        scrolling.x += io.MouseDelta.x;
-        scrolling.y += io.MouseDelta.y;
-    }
-    
-    // Context menu (under default mouse threshold)
-    ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-    if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-        ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
-    if (ImGui::BeginPopup("context"))
-    {
-        if (adding_line)
-            points.resize(points.size() - 2);
-        adding_line = false;
-        if (ImGui::MenuItem("Remove one", NULL, false, points.Size > 0)) { points.resize(points.size() - 2); }
-        if (ImGui::MenuItem("Remove all", NULL, false, points.Size > 0)) { points.clear(); }
-        ImGui::EndPopup();
-    }
-    // Draw grid + all lines in the canvas
-    draw_list->PushClipRect(canvas_p0, canvas_p1, true);
-    { // draw the grid
-        const float GRID_STEP = gridstep;
-        for (float x = fmodf(scrolling.x, GRID_STEP); x < canvas_sz.x; x += GRID_STEP)
-            draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y), ImVec2(canvas_p0.x + x, canvas_p1.y), IM_COL32(200, 200, 200, 40));
-        for (float y = fmodf(scrolling.y, GRID_STEP); y < canvas_sz.y; y += GRID_STEP)
-            draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y), ImVec2(canvas_p1.x, canvas_p0.y + y), IM_COL32(200, 200, 200, 40));
-    }
-    for (int n = 0; n < points.Size; n += 2)
-        draw_list->AddRectFilled(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), ImGui::ColorConvertFloat4ToU32(rectcol), rounding);
-    draw_list->PopClipRect();
-    ImGui::End();
-}
-
 inline void App::resetMaze() {
     maze->reset();
     steps_gen = 0;
@@ -479,4 +399,56 @@ inline void App::resetMaze() {
 
 void App::savePNG() {
     std::cout << "saving PNG..." << std::endl;
+}
+
+ImU32 App::getCastCol(float dist) {
+
+}
+
+Ray App::castFromPlayer(float delta) { // angle is in radians
+    Ray r;
+    r.originX = player.x;
+    r.originY = player.y;
+    float angle = player.angle + delta;
+    float dx, dy;
+    bool lu, lr; // look up look right
+    if (angle < PI || angle > TWO_PI) lu = true; else lu = false;
+    if (angle < HALF_PI || angle > THREE_PI_OVER_TWO) lr = true; else lr = false;
+    if (lu) dy = floor(player.y) - player.y; else dy = floor(player.y) + 1 - player.y;
+    if (lr) dx = floor(player.x) + 1 - player.x; else dx = floor(player.x) - player.x;
+    return r;
+}
+
+void App::renderRayCast() {
+    ImGui::Begin("Ray Cast");
+
+    static float fov = 90.0f;
+    static float angle = 0.0f;
+
+    ImGui::SliderFloat("FOV", &fov, 60.0f, 180.0f);
+    ImGui::SliderFloat("Angle", &angle, 0.0f, 360.0f);
+
+    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
+    ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
+    if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
+    if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
+    ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
+    // Draw border and background color
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    // This will catch our interactions
+    ImGui::InvisibleButton("canvas", canvas_sz, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+    const bool is_hovered = ImGui::IsItemHovered(); // Hovered
+    const bool is_active = ImGui::IsItemActive();   // Held
+    ImVec2 mouse_pos_in_canvas(io.MousePos.x - canvas_p0.x, io.MousePos.y - canvas_p0.y);
+    // draw grid
+    draw_list->AddRectFilled(canvas_p0, canvas_p1, wall_col);
+    
+    float rfov = RD*fov;
+    float delta = rfov / (canvas_sz.x / RAYCAST_WIDTH);
+    for (uint i = 0; i < canvas_sz.x; ++i) {
+        Ray r = castFromPlayer((delta * i) - (rfov / 2));
+        
+    }
+    ImGui::End();
 }

@@ -309,8 +309,13 @@ void App::renderMaze() {
     }
     // draw grid
     draw_list->AddRectFilled(canvas_p0, canvas_p1, wall_col);
-    for (uint i = 0; i < maze->getWidth(); ++i) {
-        for (uint j = 0; j < maze->getHeight(); ++j) {
+    uint minx, miny, maxx, maxy;
+    minx = std::max(0,(int)((canvas_p0.x - origin.x)/full_sz.x));
+    miny = std::max(0,(int)((canvas_p0.y - origin.y)/full_sz.y));
+    maxx = std::max(0,std::min((int)maze->getWidth(),(int)ceil((canvas_p1.x - origin.x)/full_sz.x)));
+    maxy = std::max(0,std::min((int)maze->getHeight(),(int)ceil((canvas_p1.y - origin.y)/full_sz.y)));
+    for (uint i = minx; i < maxx; ++i) {
+        for (uint j = miny; j < maxy; ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
             ImVec2 p1 = p0 + wall_sz + cell_sz + wall_sz;
             mnode* cur = maze->getNode(i,j);

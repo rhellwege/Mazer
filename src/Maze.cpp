@@ -320,6 +320,11 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
             MNODE_SET_WASTED(*current);
         mnode_vec neighbours = accessibleNeighbours(current);
         for (auto neighbour : neighbours) {
+            if (neighbour == finish){
+                path[neighbour] = current;
+                current = finish;
+                goto backtrack;
+            } 
             if (!MNODE_WASTED(*neighbour) && neighbour != start)  {
                 q.push(neighbour);
                 path[neighbour] = current;
@@ -327,6 +332,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
         }
         current = q.front(); q.pop();
     }
+backtrack:
     while (current != start) {
         ++pathLen;
         activeNode = current;
@@ -417,6 +423,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
     // color path
     mnode* cur = prev[finish];
     while (cur != start) {
+        ++pathLen;
         activeNode = cur;
         MNODE_SET_PATH(*cur);
         cur = prev[cur];

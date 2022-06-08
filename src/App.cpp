@@ -283,7 +283,8 @@ void App::renderMaze() {
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
     if (ImGui::BeginPopup("context"))
     {
-        if (ImGui::MenuItem("Reset view", NULL, false, true)) { pan.x = 0; pan.y = 0; zoom = 0.0f; }
+        if (ImGui::MenuItem("Reset view", NULL, false, true)) { pan.x = 0; pan.y = 0; zoom = DEFAULT_ZOOM; }
+        if (ImGui::MenuItem("Save as PNG", NULL, false, true)) { savePNG(); }
         ImGui::EndPopup();
     }
     
@@ -334,6 +335,16 @@ void App::renderMaze() {
 
 void App::renderInfo() {
     ImGui::Begin("Info", &show_info);
+    ImGui::SetWindowFontScale(1.8);
+    ImGui::Text("Mazer by Ryan Hellwege");
+    ImGui::SetWindowFontScale(1.3);
+    ImGui::Text("Controls");
+    ImGui::SetWindowFontScale(1.0);
+    ImGui::Text("ALT: follow the actiive node\nSHIFT: zoom into cursor\nCTRL + DRAG: Change the position of the start or finish");
+    ImGui::Separator();
+    ImGui::SetWindowFontScale(1.3);
+    ImGui::Text("Output");
+    ImGui::SetWindowFontScale(1.0);
     ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
     ImGui::Text("Maze Dimensions: (%.i, %.i)", maze->getWidth(), maze->getHeight());
     ImGui::Text("Seed %.u", maze->getSeed());
@@ -459,4 +470,8 @@ inline void App::resetMaze() {
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
+}
+
+void App::savePNG() {
+    std::cout << "saving PNG..." << std::endl;
 }

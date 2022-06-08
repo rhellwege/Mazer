@@ -5,6 +5,10 @@ A minimalist commandline interface maze generator and solver. Note that all maze
 - You can download the release.zip from the releases tab
 - You can run ```git clone "https://github.com/rhellwege/Mazer.git"```
 
+
+IDEA: CTRL + MOUSE DRAG CHANGE EITHER START OR FINISH
+IDEA: MOUSEWHEEL CONTROLS ZOOM
+
 ## How to build
 ### Linux
 1. install make and gcc with brew if they aren't installed already ```sudo apt install gcc make``` or ```sudo pacman -S g++ make```

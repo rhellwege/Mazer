@@ -41,4 +41,6 @@ public:
     void renderMaze();
     void renderMenuBar();
     void run();
+
+    void savePNG();
 };

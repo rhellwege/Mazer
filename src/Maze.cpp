@@ -171,10 +171,11 @@ void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
     TICK
-    activeNode = c;
+    
     mnode* neighbour = randomUnvisited(c);
     while (neighbour != nullptr) {
         removeEdge(c, neighbour);
+        activeNode = neighbour;
         dfsGenHelper(neighbour, steps);
         neighbour = randomUnvisited(c);
     }

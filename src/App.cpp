@@ -32,6 +32,7 @@ ImVec2 operator-(const ImVec2& l,const ImVec2 & r) {
     return {l.x-r.x,l.y-r.y};                                    
 }
 App::App(const char* title, int width, int height) {
+    caster = new RayCaster(maze);
     window_title = title;
     window_width = width;
     window_height = height;
@@ -124,7 +125,8 @@ App::App(const char* title, int width, int height) {
     len_path = 0;
     cell_to_wall = 1.0f;
     timescale = 0.0f;
-    player = {0.5f, 0.5f, 0.0f};
+
+    
 }
 
 void App::run() {
@@ -305,7 +307,7 @@ void App::renderMaze() {
     ImVec2 cell_sz = {canvas_sz.x / maze->getWidth() - wall_sz.x, canvas_sz.y / maze->getHeight() - wall_sz.y};
     ImVec2 full_sz = cell_sz + wall_sz;
     if (io.KeyShift) {
-        origin = canvas_p0 - ImVec2(mouse_pos_in_canvas.x * zoom, mouse_pos_in_canvas.y * zoom) + ImVec2(canvas_sz.x/2, canvas_sz.y/2);
+        origin = canvas_p0 - ImVec2(mouse_pos_in_canvas.x, mouse_pos_in_canvas.y) + pan;
         wall_sz = ImVec2(wall_sz.x * zoom, wall_sz.y * zoom);
         cell_sz = ImVec2(cell_sz.x * zoom, cell_sz.y * zoom);
         full_sz = cell_sz + wall_sz;
@@ -402,21 +404,6 @@ void App::savePNG() {
 }
 
 ImU32 App::getCastCol(float dist) {
-
-}
-
-Ray App::castFromPlayer(float delta) { // angle is in radians
-    Ray r;
-    r.originX = player.x;
-    r.originY = player.y;
-    float angle = player.angle + delta;
-    float dx, dy;
-    bool lu, lr; // look up look right
-    if (angle < PI || angle > TWO_PI) lu = true; else lu = false;
-    if (angle < HALF_PI || angle > THREE_PI_OVER_TWO) lr = true; else lr = false;
-    if (lu) dy = floor(player.y) - player.y; else dy = floor(player.y) + 1 - player.y;
-    if (lr) dx = floor(player.x) + 1 - player.x; else dx = floor(player.x) - player.x;
-    return r;
 }
 
 void App::renderRayCast() {
@@ -447,7 +434,7 @@ void App::renderRayCast() {
     float rfov = RD*fov;
     float delta = rfov / (canvas_sz.x / RAYCAST_WIDTH);
     for (uint i = 0; i < canvas_sz.x; ++i) {
-        Ray r = castFromPlayer((delta * i) - (rfov / 2));
+        
         
     }
     ImGui::End();

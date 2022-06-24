@@ -22,4 +22,3 @@
 #include <future>
 #include <thread>
 #include <functional>
-#define PI 3.14159265358979

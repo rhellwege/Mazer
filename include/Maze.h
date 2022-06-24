@@ -119,4 +119,7 @@ public:
 
     void generate(const std::string& funcName, uint& steps);
     void solve(const std::string& funcName, uint& steps, uint& pathLen);
+
+    // for ray casting:
+    bool isWall(float x, float y);
 };

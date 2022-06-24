@@ -2,6 +2,7 @@
 #include "../deps/imgui/imgui.h"
 #include "Maze.h"
 #include "../deps/imgui/backends/GLFW/glfw3.h"
+#include "RayCaster.h"
 
 static const ImU32 bg_col = IM_COL32(255, 255, 255, 255);
 static const ImU32 wall_col = IM_COL32(0, 0, 0, 255);
@@ -10,18 +11,6 @@ static const ImU32 finish_col = IM_COL32(255, 0, 0, 255);
 static const ImU32 wasted_col = IM_COL32(180, 180, 255, 255);
 static const ImU32 path_col = IM_COL32(0, 0, 255, 255);
 static const ImU32 active_col = IM_COL32(255, 255, 0, 255);
-
-struct Ray {
-    bool isHorizontalHit;
-    float originX, originY;
-    float hitX, hitY;
-    float trueDist;
-    float camDist;
-};
-
-struct Player {
-    float x, y, angle;
-};
 
 class App {
 private:
@@ -45,9 +34,7 @@ private:
     float timescale;
     ImU32 getFillCol(mnode* m);
     inline void resetMaze();
-    Player player;
-
-    Ray castFromPlayer(float delta);
+    RayCaster caster;
     ImU32 getCastCol(float dist);
 
 public:
@@ -59,6 +46,5 @@ public:
     void renderRayCast();
     void renderMenuBar();
     void run();
-
     void savePNG();
 };

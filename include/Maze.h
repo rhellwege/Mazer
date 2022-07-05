@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "imgui.h"
 
 typedef uint uint32_t;
 typedef unsigned char uchar;
@@ -84,6 +85,7 @@ public:
     bool isAsync;
     bool executing;
     mnode* activeNode;
+    float cell_to_wall;
 
     std::future<void> ft;
 
@@ -119,7 +121,9 @@ public:
 
     void generate(const std::string& funcName, uint& steps);
     void solve(const std::string& funcName, uint& steps, uint& pathLen);
-
+    
+    void display();
     // for ray casting:
     bool isWall(float x, float y);
+    ImU32 getFillCol(mnode* m);
 };

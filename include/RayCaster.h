@@ -1,24 +1,25 @@
 #pragma once
 #include "common.h"
 #include "Maze.h"
+#include "imgui.h"
 // all angles are in *RADIANS*
 struct Ray {
     bool isHorizontalHit;
     float dist;
 };
 
-struct Player {
-    float x, y, angle;
-};
-
 class RayCaster {
 private:
-    Player player;
     Maze* maze;
+    float x, y, angle;
+    float castWidth;
+    float fov;
 
 public:
+    ImU32 getCastCol(float dist);
     RayCaster(Maze* m);
     void walk(float units, float delta = 0.0f);
     void turn(float delta);
     Ray cast(float delta);
+    void display();
 };

@@ -4,14 +4,6 @@
 #include "../deps/imgui/backends/GLFW/glfw3.h"
 #include "RayCaster.h"
 
-static const ImU32 bg_col = IM_COL32(255, 255, 255, 255);
-static const ImU32 wall_col = IM_COL32(0, 0, 0, 255);
-static const ImU32 start_col = IM_COL32(0, 255, 0, 255);
-static const ImU32 finish_col = IM_COL32(255, 0, 0, 255);
-static const ImU32 wasted_col = IM_COL32(180, 180, 255, 255);
-static const ImU32 path_col = IM_COL32(0, 0, 255, 255);
-static const ImU32 active_col = IM_COL32(255, 255, 0, 255);
-
 class App {
 private:
     const char* window_title;
@@ -30,11 +22,11 @@ private:
     uint steps_gen;
     uint steps_solve;
     uint len_path;
-    float cell_to_wall;
+    
     float timescale;
     ImU32 getFillCol(mnode* m);
     inline void resetMaze();
-    RayCaster caster;
+    RayCaster* caster;
     ImU32 getCastCol(float dist);
 
 public:

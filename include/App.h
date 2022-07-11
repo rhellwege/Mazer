@@ -24,7 +24,7 @@ private:
     uint len_path;
     
     float timescale;
-    ImU32 getFillCol(mnode* m);
+    
     inline void resetMaze();
     RayCaster* caster;
     ImU32 getCastCol(float dist);

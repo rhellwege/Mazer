@@ -8,18 +8,26 @@ struct Ray {
     float dist;
 };
 
+struct Wall {
+    ImU32 color;
+    float height;
+};
+
 class RayCaster {
 private:
     Maze* maze;
-    float x, y, angle;
     float castWidth;
-    float fov;
+    float walkspeed;
+    float rotspeed;
 
 public:
-    ImU32 getCastCol(float dist);
+    ImVec2 pos, dir, plane;
+    ImVec2 canvas_p0, canvas_sz; // screen dimensions
     RayCaster(Maze* m);
-    void walk(float units, float delta = 0.0f);
-    void turn(float delta);
-    Ray cast(float delta);
+    void reset();
+    Wall getWall(Ray r);
+    void walk(int d);
+    void rotate(bool right);
+    Ray cast(float planeRatio);
     void display();
 };

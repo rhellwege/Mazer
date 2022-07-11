@@ -41,15 +41,6 @@ static const coord DIRECTIONS[4] {
     std::make_pair(-1,0)
 };
 
-template <typename T,typename U>                                                   
-std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
-    return {l.first+r.first,l.second+r.second};                                    
-}
-template <typename T,typename U>                                                   
-std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
-    return {l.first-r.first,l.second-r.second};                                    
-}
-
 class Maze {
 private:
     mnode* data, *start, *finish;
@@ -81,6 +72,7 @@ private:
     mnode* randomUnvisited(mnode* m);
 
 public:
+    ImVec2 canvas_p0, canvas_sz, wall_sz, cell_sz, full_sz;
     int delay;
     bool isAsync;
     bool executing;
@@ -124,6 +116,9 @@ public:
     
     void display();
     // for ray casting:
-    bool isWall(float x, float y);
+    bool isWall(ImVec2 pos); // samples actual screen pixels
     ImU32 getFillCol(mnode* m);
+
+    uint floatToPixel(ImVec2 c);
+    float pixelToFloat();
 };

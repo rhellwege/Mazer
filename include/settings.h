@@ -15,3 +15,7 @@ static const ImU32 finish_col = IM_COL32(255, 0, 0, 255);
 static const ImU32 wasted_col = IM_COL32(180, 180, 255, 255);
 static const ImU32 path_col = IM_COL32(0, 0, 255, 255);
 static const ImU32 active_col = IM_COL32(255, 255, 0, 255);
+static const ImU32 horz_col = IM_COL32(140, 140, 140, 255);
+static const ImU32 vert_col = IM_COL32(200, 200, 200, 255);
+static const ImU32 floor_col = IM_COL32(255, 212, 83, 255);
+static const ImU32 sky_col = IM_COL32(73, 150, 255, 255);

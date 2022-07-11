@@ -18,11 +18,11 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 App::App(const char* title, int width, int height) {
-    caster = new RayCaster(maze);
     window_title = title;
     window_width = width;
     window_height = height;
     maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
+    caster = new RayCaster(maze);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -126,7 +126,7 @@ void App::run() {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
         // if (show_menubar)
         //     renderMenuBar();
-
+        
         if (show_controls)
             renderControls();
 
@@ -239,15 +239,6 @@ void App::renderControls() {
     ImGui::End();
 }
 
-ImU32 App::getFillCol(mnode* m) {
-    if (m == maze->activeNode) return active_col;
-    else if (MNODE_FINISH(*m)) return finish_col;
-    else if (MNODE_START(*m)) return start_col;
-    else if (MNODE_PATH(*m)) return path_col;
-    else if (MNODE_WASTED(*m)) return wasted_col;
-    else return bg_col;
-}
-
 void App::renderMaze() {
     maze->display();
 }
@@ -278,6 +269,9 @@ void App::renderInfo() {
         ImGui::Text("Solve steps: %.i", steps_solve);
         ImGui::Text("Path length: %.i", len_path);
     }
+    ImGui::Text("CASTER");
+    ImGui::Text("position: %.f, %.f", caster->pos.x, caster->pos.y);
+    ImGui::Text("Cell: %.i, %.i", (int)(caster->pos.x / maze->full_sz.x), (int)(caster->pos.y / maze->full_sz.y));
     ImGui::End();
 }
 

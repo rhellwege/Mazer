@@ -1,5 +1,6 @@
 #include "Maze.h"
 #include "settings.h"
+#include "vecop.h"
 
 #define TICK ++steps;\
     if (isAsync)\
@@ -20,29 +21,36 @@ static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT 
     {"A*", &Maze::solveAStar}
 };
 
-ImVec2 operator+(const ImVec2 & l,const ImVec2 & r) {   
-    return {l.x+r.x,l.y+r.y};                                    
+template <typename T,typename U>                                                   
+std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
+    return {l.first+r.first,l.second+r.second};                                    
 }
-                                                
-ImVec2 operator-(const ImVec2& l,const ImVec2 & r) {   
-    return {l.x-r.x,l.y-r.y};                                    
+template <typename T,typename U>                                                   
+std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
+    return {l.first-r.first,l.second-r.second};                                    
 }
 
 Maze::Maze(uint w, uint h) {
     cell_to_wall = 1.0f;
+    executing = false;
+    isAsync = false;
+    canvas_p0 = ImVec2(0,0);
+    canvas_sz = ImVec2(0,0);
+    wall_sz = ImVec2(0,0);
+    cell_sz = ImVec2(0,0);
+    full_sz = ImVec2(0,0);
     generated = false;
     solved = false;
     resize(w, h);
     seed = time(NULL);
     delay = DEFAULT_DELAY;
-    isAsync = false;
-    executing = false;
 }
 
 void Maze::reset() {
     if (executing)
         stopAnimation();
-    memset(data, MNODE_CLEAN, area); generated = false; solved = false;
+    memset(data, MNODE_CLEAN, area); generated = false; 
+    solved = false;
     start = data;
     finish = start + area - 1;
     activeNode = start;
@@ -92,7 +100,6 @@ void Maze::resize(uint newW, uint newH) {
         free(data);
     data = (mnode*)malloc(area*sizeof(mnode));
     reset();
-    
 }
 void Maze::unsolve() {
     for (uint i = 0; i < area; ++i) {
@@ -478,8 +485,8 @@ void Maze::display() {
     static float zoom = DEFAULT_ZOOM;
     ImGui::SliderFloat("Cell to wall ratio", &cell_to_wall, 0.5f, 10.0f);
     ImGui::SliderFloat("Zoom", &zoom, 1.0f, 10.0f);
-    ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
-    ImVec2 canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
+    canvas_p0 = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
+    canvas_sz = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
     if (canvas_sz.x < 50.0f) canvas_sz.x = 50.0f;
     if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
     ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
@@ -511,9 +518,9 @@ void Maze::display() {
     
     ImVec2 origin(canvas_p0.x + pan.x, canvas_p0.y + pan.y); // Lock scrolled origin
     ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    ImVec2 wall_sz = {canvas_sz.x / getWidth()/(cell_to_wall*2), canvas_sz.y / getHeight()/(cell_to_wall*2)};
-    ImVec2 cell_sz = {canvas_sz.x / getWidth() - wall_sz.x, canvas_sz.y / getHeight() - wall_sz.y};
-    ImVec2 full_sz = cell_sz + wall_sz;
+    wall_sz = {canvas_sz.x / getWidth()/(cell_to_wall*2), canvas_sz.y / getHeight()/(cell_to_wall*2)};
+    cell_sz = {canvas_sz.x / getWidth() - wall_sz.x, canvas_sz.y / getHeight() - wall_sz.y};
+    full_sz = cell_sz + wall_sz;
     if (io.KeyShift) {
         origin = canvas_p0 - ImVec2(mouse_pos_in_canvas.x, mouse_pos_in_canvas.y) + pan;
         wall_sz = ImVec2(wall_sz.x * zoom, wall_sz.y * zoom);
@@ -556,4 +563,19 @@ void Maze::display() {
         }
     }
     ImGui::End();
+}
+
+bool Maze::isWall(ImVec2 pos) { // in pixels
+    if (pos.x >= canvas_sz.x || pos.x < 0 || pos.y >= canvas_sz.y || pos.y < 0) return 1;
+    uint x = (uint) (pos.x / full_sz.x);
+    uint y = (uint) (pos.y / full_sz.y);
+    ImVec2 vec = ImVec2(x*full_sz.x,y*full_sz.y);
+    mnode n = *getNode(x,y);
+    ImVec2 posInCell = pos - vec;
+    if (posInCell.x < wall_sz.x && posInCell.y < wall_sz.y) return 1;
+    if (posInCell.y < wall_sz.y && MNODE_GET_WALL(n,0)) return 1;
+    if (posInCell.x > full_sz.x && MNODE_GET_WALL(n,1)) return 1;
+    if (posInCell.y > full_sz.y && MNODE_GET_WALL(n,2)) return 1;
+    if (posInCell.x < wall_sz.x && MNODE_GET_WALL(n,3)) return 1;
+    return 0;
 }

@@ -12,10 +12,12 @@ IDEA: MOUSEWHEEL CONTROLS ZOOM
 ## How to build
 ### Linux
 1. install make and gcc with brew if they aren't installed already ```sudo apt install gcc make``` or ```sudo pacman -S g++ make```
-2. build with the command ```make```
+2. install dependencies: sudo apt-get install libglfw3-dev
+3. build with the command ```make```
 ### Mac
 1. install make and gcc with brew if they aren't installed already ```brew install gcc make```
-2. build with the command ```make```
+2. install dependencies: sudo apt-get install libglfw3-dev
+3. build with the command ```make```
 ### Windows
 Unfortunately this project is currently not buildable on windows, however you can use Windows Subsystem for Linux [(wsl)](https://docs.microsoft.com/en-us/windows/wsl/install)
 ## How to run

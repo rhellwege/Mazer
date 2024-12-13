@@ -2,7 +2,7 @@
 #include "common.h"
 #include "imgui.h"
 
-typedef uint uint32_t;
+typedef uint32_t uint;
 typedef unsigned char uchar;
 typedef uchar mnode;
 typedef std::pair<int, int> coord;
@@ -48,13 +48,13 @@ private:
     uint W, H;
     uint area;
     uint stride;
-    
+
     bool generated;
     bool solved;
-    
+
     bool inBounds(const uint x, const uint y);
     bool inBounds(const coord& c);
-    
+
     void solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
     void dfsGenHelper(mnode* c, uint& steps);
     double distCell(mnode* a, mnode* b);
@@ -100,7 +100,7 @@ public:
     uint getSeed();
     void setSeed(uint newSeed);
     void resetSeed();
-    
+
     void genDFS(uint& steps);
     void genKruskal(uint& steps);
     void genPrims(uint& steps);
@@ -113,7 +113,7 @@ public:
 
     void generate(const std::string& funcName, uint& steps);
     void solve(const std::string& funcName, uint& steps, uint& pathLen);
-    
+
     void display();
     // for ray casting:
     bool isWall(ImVec2 pos); // samples actual screen pixels

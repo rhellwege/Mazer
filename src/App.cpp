@@ -21,6 +21,7 @@ App::App(const char* title, int width, int height) {
     window_title = title;
     window_width = width;
     window_height = height;
+    maze_generating = false;
     maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT);
     caster = new RayCaster(maze);
 

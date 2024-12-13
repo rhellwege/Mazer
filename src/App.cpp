@@ -109,59 +109,63 @@ App::App(const char* title, int width, int height) {
     steps_gen = 0;
     steps_solve = 0;
     len_path = 0;
-    
+
     timescale = 0.0f;
 }
 
+void App::mainLoop() {
+    // Poll and handle events (inputs, window resize, etc.)
+    glfwPollEvents();
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+    // if (show_menubar)
+    //     renderMenuBar();
+
+    if (show_controls)
+        renderControls();
+
+    if (show_info)
+        renderInfo();
+
+    if (show_demo)
+        ImGui::ShowDemoWindow(&show_demo);
+
+    if (show_maze)
+        renderMaze();
+
+    if (show_raycast)
+        renderRayCast();
+
+    // Rendering
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Update and Render additional Platform Windows
+    // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+    //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        GLFWwindow* backup_current_context = glfwGetCurrentContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backup_current_context);
+    }
+
+    glfwSwapBuffers(window);
+
+}
 void App::run() {
     while (!glfwWindowShouldClose(window)) {
-        // Poll and handle events (inputs, window resize, etc.)
-        glfwPollEvents();
-
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-        // if (show_menubar)
-        //     renderMenuBar();
-        
-        if (show_controls)
-            renderControls();
-
-        if (show_info) 
-            renderInfo();
-    
-        if (show_demo)
-            ImGui::ShowDemoWindow(&show_demo);
-
-        if (show_maze)
-            renderMaze();
-
-        if (show_raycast)
-            renderRayCast();
-
-        // Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
-        }
-
-        glfwSwapBuffers(window);
+        mainLoop();
     }
 }
 
@@ -187,7 +191,7 @@ void App::renderControls() {
 
     static const char* solve_algos[] = {"DFS", "BFS", "Dijkstra", "A*"};
     static int current_solve_algo = 0;
-    
+
     static int maze_dimensions[2];
     maze_dimensions[0] = maze->getWidth();
     maze_dimensions[1] = maze->getHeight();
@@ -203,9 +207,10 @@ void App::renderControls() {
     ImGui::SameLine();
     if (ImGui::Button("Generate") && !maze_generating) {
         maze_generating = true;
-        
+
         resetMaze();
         std::string func = gen_algos[current_gen_algo];
+        std::cout << "Generating with " << gen_algos[current_gen_algo] << std::endl;
         maze->generate(func, this->steps_gen);
         //if (maze->isGenerated()) t.join();
         maze_generating = false;
@@ -214,7 +219,7 @@ void App::renderControls() {
         ImGui::BeginDisabled();
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Solve Algorithm", &current_solve_algo, solve_algos, IM_ARRAYSIZE(solve_algos));
-        
+
     ImGui::SameLine();
     if (ImGui::Button("Solve") && !maze_solving) {
         maze_solving = true;
@@ -231,7 +236,7 @@ void App::renderControls() {
     }
     if (!maze->isGenerated())
         ImGui::EndDisabled();
-    
+
     if (ImGui::SliderFloat("Animation Speed", &timescale, -1.0f, 1.0f)) {
         maze->delay = DEFAULT_DELAY - timescale*DEFAULT_DELAY;
     }

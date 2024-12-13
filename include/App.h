@@ -22,9 +22,9 @@ private:
     uint steps_gen;
     uint steps_solve;
     uint len_path;
-    
+
     float timescale;
-    
+
     inline void resetMaze();
     RayCaster* caster;
     ImU32 getCastCol(float dist);
@@ -38,5 +38,6 @@ public:
     void renderRayCast();
     void renderMenuBar();
     void run();
+    void mainLoop();
     void savePNG();
 };

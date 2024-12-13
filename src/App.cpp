@@ -201,7 +201,9 @@ void App::renderControls() {
         resetMaze();
         maze->resize(maze_dimensions[0], maze_dimensions[1]);
     }
+    #ifndef __EMSCRIPTEN__
     ImGui::Checkbox("Animate", &maze->isAsync);
+    #endif
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Generation Algorithm", &current_gen_algo, gen_algos, IM_ARRAYSIZE(gen_algos));
 
@@ -238,9 +240,11 @@ void App::renderControls() {
     if (!maze->isGenerated())
         ImGui::EndDisabled();
 
+    #ifndef __EMSCRIPTEN__
     if (ImGui::SliderFloat("Animation Speed", &timescale, -1.0f, 1.0f)) {
         maze->delay = DEFAULT_DELAY - timescale*DEFAULT_DELAY;
     }
+    #endif
 
     ImGui::End();
 }

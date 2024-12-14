@@ -2,12 +2,13 @@
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 1000
 #define WINDOW_TITLE "Mazer GUI"
-#define MAZE_WIDTH 10
-#define MAZE_HEIGHT 10
+#define MAZE_WIDTH 16
+#define MAZE_HEIGHT 16
 #define DEFAULT_DELAY 300
 #define DEFAULT_ZOOM 2.0f
 #define DEFAULT_CAST_WIDTH 8
 #define DEFAULT_FOV 90.0f
+#define DEFAULT_CELL_TO_WALL 2.0f
 static const ImU32 bg_col = IM_COL32(255, 255, 255, 255);
 static const ImU32 wall_col = IM_COL32(0, 0, 0, 255);
 static const ImU32 start_col = IM_COL32(0, 255, 0, 255);

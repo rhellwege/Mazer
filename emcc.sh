@@ -14,4 +14,5 @@ em++ -std=c++17 src/main.cpp src/App.cpp src/Maze.cpp src/RayCaster.cpp src/veco
     -s "FULL_ES3=1" \
     -s "ALLOW_MEMORY_GROWTH=1" \
     -s "ENVIRONMENT='web'" \
-    -s "WASM=1"
+    -s "WASM=1" \
+    --shell-file ./shell_minimal.html

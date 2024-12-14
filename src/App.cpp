@@ -258,7 +258,7 @@ void App::renderInfo() {
     ImGui::SetWindowFontScale(1.3);
     ImGui::Text("Controls");
     ImGui::SetWindowFontScale(1.0);
-    ImGui::Text("ALT: follow the actiive node\nSHIFT: zoom into cursor\nCTRL + DRAG: Change the position of the start or finish");
+    ImGui::Text("ALT: follow the active node\nSHIFT: zoom into cursor\nCTRL + DRAG: Change the position of the start or finish");
     ImGui::Separator();
     ImGui::SetWindowFontScale(1.3);
     ImGui::Text("Output");

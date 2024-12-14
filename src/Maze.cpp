@@ -21,17 +21,17 @@ static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT 
     {"A*", &Maze::solveAStar}
 };
 
-template <typename T,typename U>                                                   
-std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
-    return {l.first+r.first,l.second+r.second};                                    
+template <typename T,typename U>
+std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {
+    return {l.first+r.first,l.second+r.second};
 }
-template <typename T,typename U>                                                   
-std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {   
-    return {l.first-r.first,l.second-r.second};                                    
+template <typename T,typename U>
+std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {
+    return {l.first-r.first,l.second-r.second};
 }
 
 Maze::Maze(uint w, uint h) {
-    cell_to_wall = 1.0f;
+    cell_to_wall = DEFAULT_CELL_TO_WALL;
     executing = false;
     isAsync = false;
     canvas_p0 = ImVec2(0,0);
@@ -49,13 +49,13 @@ Maze::Maze(uint w, uint h) {
 void Maze::reset() {
     if (executing)
         stopAnimation();
-    memset(data, MNODE_CLEAN, area); generated = false; 
+    memset(data, MNODE_CLEAN, area); generated = false;
     solved = false;
     start = data;
     finish = start + area - 1;
     activeNode = start;
     MNODE_SET_START(*data);
-    MNODE_SET_FINISH(*finish); 
+    MNODE_SET_FINISH(*finish);
 }
 
 void Maze::stopAnimation() {
@@ -187,7 +187,7 @@ void Maze::dfsGenHelper(mnode* c, uint& steps) {
     if (MNODE_VISITED(*c)) return;
     MNODE_VISIT(*c);
     TICK
-    
+
     mnode* neighbour = randomUnvisited(c);
     while (neighbour != nullptr) {
         removeEdge(c, neighbour);
@@ -304,12 +304,12 @@ void Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
     if (c == finish) {
         solved = true;
         return;
-    }   
+    }
     if (MNODE_PATH(*c)) return;
     if (c != start)
         MNODE_SET_PATH(*c);
     mnode_vec accessible = accessibleNeighbours(c);
-    for (auto n : accessible) 
+    for (auto n : accessible)
         if (MNODE_FINISH(*n) || !MNODE_PATH(*n)) solveDFSHelper(n, steps, pathLen);
     if (solved) return;
     if (c != start) {
@@ -323,7 +323,7 @@ void Maze::solveDFS(uint& steps, uint& pathLen) {
     solveDFSHelper(start, steps, pathLen);
     solved = true;
     executing = false;
-} 
+}
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
     std::queue<mnode*> q;
@@ -340,7 +340,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
                 path[neighbour] = current;
                 current = finish;
                 goto backtrack;
-            } 
+            }
             if (!MNODE_WASTED(*neighbour) && neighbour != start)  {
                 q.push(neighbour);
                 path[neighbour] = current;
@@ -428,7 +428,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         pq.pop();
         mnode_vec neighbours = accessibleNeighbours(u);
         for (auto v : neighbours) {
-            
+
             if (distance[v] > distance[u] + 1) {
                 distance[v] = distance[u] + 1;
                 prev[v] = u;
@@ -466,7 +466,7 @@ void Maze::solve(const std::string& funcName, uint& steps, uint& pathLen) {
     if (isAsync) {
         ft = std::async(std::launch::async, [this, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
     }
-    else  
+    else
         (this->*solver)(steps, pathLen);
 }
 
@@ -515,7 +515,7 @@ void Maze::display() {
         //if (ImGui::MenuItem("Save as PNG", NULL, false, true)) { savePNG(); }
         ImGui::EndPopup();
     }
-    
+
     ImVec2 origin(canvas_p0.x + pan.x, canvas_p0.y + pan.y); // Lock scrolled origin
     ImVec2 mouse_pos_in_canvas(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
     wall_sz = {canvas_sz.x / getWidth()/(cell_to_wall*2), canvas_sz.y / getHeight()/(cell_to_wall*2)};

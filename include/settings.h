@@ -1,6 +1,6 @@
 #pragma once
 #define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_HEIGHT 800
 #define WINDOW_TITLE "Mazer GUI"
 #define MAZE_WIDTH 16
 #define MAZE_HEIGHT 16

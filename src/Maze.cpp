@@ -51,11 +51,11 @@ void Maze::reset() {
         stopAnimation();
     memset(data, MNODE_CLEAN, area); generated = false;
     solved = false;
-    start = data;
+    start = 0;
     finish = start + area - 1;
     activeNode = start;
-    MNODE_SET_START(*data);
-    MNODE_SET_FINISH(*finish);
+    MNODE_SET_START(data[0]);
+    MNODE_SET_FINISH(data[finish]);
 }
 
 void Maze::stopAnimation() {
@@ -64,26 +64,32 @@ void Maze::stopAnimation() {
 }
 
 bool Maze::inBounds(uint x, uint y) { return !(x < 0 || y < 0 || x >= W || y >= H);}
+
 bool Maze::inBounds(const coord& c) { return inBounds(c.first, c.second); }
+
 bool Maze::isGenerated() {return generated;}
+
 bool Maze::isSolved() {return solved;}
-mnode* Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
-mnode* Maze::getNode(const uint x, const uint y) {
-    mnode* node = (mnode*)(data + y * stride + x);
-    return inBounds(x, y) ? node : nullptr;
+
+uint Maze::getNode(const coord& c) { return getNode(c.first, c.second); }
+
+uint Maze::getNode(const uint x, const uint y) {
+    uint node = (uint)(y * stride + x);
+    return inBounds(x, y) ? node : -1;
 }
-coord Maze::getCoord(mnode* m) {
-    uint pos = m - data;
-    return std::make_pair(pos % stride, pos / stride);
+
+coord Maze::getCoord(uint m) {
+    return std::make_pair(m % stride, m / stride);
 }
-void Maze::removeEdge(mnode* a, mnode* b) {
+
+void Maze::removeEdge(uint a, uint b) {
     coord aCoord = getCoord(a);
     coord bCoord = getCoord(b);
     coord diff  = bCoord - aCoord;
     for (int i = 0; i < 4; ++i) {
         if (diff == DIRECTIONS[i]) {
-            MNODE_REMOVE_WALL(*a, i);
-            MNODE_REMOVE_WALL(*b, (i+2)%4);
+            MNODE_REMOVE_WALL(data[a], i);
+            MNODE_REMOVE_WALL(data[b], (i+2)%4);
         }
     }
 }
@@ -106,8 +112,8 @@ void Maze::unsolve() {
         data[i] &= 0b00001111;
     }
     solved = false;
-    MNODE_SET_START(*start);
-    MNODE_SET_FINISH(*finish);
+    MNODE_SET_START(data[start]);
+    MNODE_SET_FINISH(data[finish]);
 }
 uint Maze::getHeight() { return H; }
 uint Maze::getWidth() { return W; }
@@ -116,7 +122,7 @@ uint Maze::getSeed() { return seed; }
 void Maze::setSeed(uint newSeed) { srand(newSeed); seed = newSeed; }
 void Maze::resetSeed() {seed = time(NULL);}
 
-mnode_vec Maze::allNeighbours(mnode* m) {
+mnode_vec Maze::allNeighbours(uint m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
@@ -127,38 +133,38 @@ mnode_vec Maze::allNeighbours(mnode* m) {
     }
     return v;
 }
-mnode_vec Maze::visitedNeighbours(mnode* m) {
+mnode_vec Maze::visitedNeighbours(uint m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
         coord newCoord = c + DIRECTIONS[i];
         if (inBounds(newCoord) ) {
-            mnode* newNode = getNode(newCoord);
-            if (MNODE_VISITED(*(getNode(newCoord))))
+            uint newNode = getNode(newCoord);
+            if (MNODE_VISITED(data[(getNode(newCoord))]))
                 v.push_back(newNode);
         }
     }
     return v;
 }
-mnode_vec Maze::unvisitedNeighbours(mnode* m) {
+mnode_vec Maze::unvisitedNeighbours(uint m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
         coord newCoord = c + DIRECTIONS[i];
         if (inBounds(newCoord)) {
-            mnode* newNode = getNode(newCoord);
-            if (!MNODE_VISITED(*(getNode(newCoord))))
+            uint newNode = getNode(newCoord);
+            if (!MNODE_VISITED(data[(getNode(newCoord))]))
                 v.push_back(newNode);
         }
     }
     return v;
 }
 
-mnode_vec Maze::accessibleNeighbours(mnode* m) {
+mnode_vec Maze::accessibleNeighbours(uint m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
-        if (MNODE_GET_WALL(*m, i)) continue;
+        if (MNODE_GET_WALL(data[m], i)) continue;
         coord newCoord = c + DIRECTIONS[i];
         if (inBounds(newCoord)) {
             v.push_back(getNode(newCoord));
@@ -167,29 +173,29 @@ mnode_vec Maze::accessibleNeighbours(mnode* m) {
     return v;
 }
 
-mnode* Maze::randomUnvisited(mnode* m) {
+uint Maze::randomUnvisited(uint m) {
     mnode_vec v;
     coord c = getCoord(m);
     for (int i = 0; i < 4; ++i) {
         coord newCoord = c + DIRECTIONS[i];
         if (inBounds(newCoord)) {
-            mnode* newNode = getNode(newCoord);
-            if (!MNODE_VISITED(*(getNode(newCoord))))
+            uint newNode = getNode(newCoord);
+            if (!MNODE_VISITED(data[(getNode(newCoord))]))
                 v.push_back(newNode);
         }
     }
-    if (v.size() == 0) return nullptr;
+    if (v.size() == 0) return -1;
     return v[rand() % v.size()];
 }
 
 /* -------------------- GENERATORS -------------------- */
-void Maze::dfsGenHelper(mnode* c, uint& steps) {
-    if (MNODE_VISITED(*c)) return;
-    MNODE_VISIT(*c);
+void Maze::dfsGenHelper(uint c, uint& steps) {
+    if (MNODE_VISITED(data[c])) return;
+    MNODE_VISIT(data[c]);
     TICK
 
-    mnode* neighbour = randomUnvisited(c);
-    while (neighbour != nullptr) {
+    uint neighbour = randomUnvisited(c);
+    while (neighbour != -1) {
         removeEdge(c, neighbour);
         activeNode = neighbour;
         dfsGenHelper(neighbour, steps);
@@ -198,29 +204,29 @@ void Maze::dfsGenHelper(mnode* c, uint& steps) {
 }
 
 void Maze::genDFS(uint& steps) {
-    dfsGenHelper(data + (rand() % area), steps);
+    dfsGenHelper(rand() % area, steps);
     generated = true;
     executing = false;
 }
 
-mnode* Maze::setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c) {
+uint Maze::setFind(std::unordered_map<uint, uint>& s, uint c) {
     if (s[c] == c) return c;
     return setFind(s, s[c]);
 }
 
-void Maze::setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b) {
-    mnode* aParent = setFind(s, a);
-    mnode* bParent = setFind(s, b);
+void Maze::setUnion(std::unordered_map<uint, uint>& s, uint a, uint b) {
+    uint aParent = setFind(s, a);
+    uint bParent = setFind(s, b);
     s[aParent] = bParent;
 }
 
 void Maze::genKruskal(uint& steps) {
     std::vector<mnode_edge> edges;
-    std::unordered_map<mnode*, mnode*> sets;
+    std::unordered_map<uint, uint> sets;
     int wallsDown = 0;
     for (uint i = 0; i < W ; ++i) {
         for (uint j = 0; j < H; ++j) {
-            mnode* c = getNode(i, j);
+            uint c = getNode(i, j);
             sets[c] = c;
             if (i < W - 1)
                 edges.push_back(std::make_pair(c, getNode(i + 1, j)));
@@ -245,7 +251,7 @@ void Maze::genKruskal(uint& steps) {
     executing = false;
 }
 
-void Maze::addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset) {
+void Maze::addFrontier(uint c, std::deque<uint>& frontier, std::unordered_set<uint>& fset) {
     if (fset.find(c) != fset.end()) {
         printf("already in fset.\n");
         return;
@@ -254,7 +260,7 @@ void Maze::addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_se
     fset.insert(c);
 }
 
-void Maze::addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset, std::unordered_set<mnode*>& mst) {
+void Maze::addMst(uint c, int idx, std::deque<uint>& frontier, std::unordered_set<uint>& fset, std::unordered_set<uint>& mst) {
     if (mst.find(c) != mst.end()) return;
     if (fset.find(c) != fset.end())
         fset.erase(c);
@@ -272,23 +278,23 @@ void Maze::addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordere
 }
 
 void Maze::genPrims(uint& steps) {
-    std::unordered_set<mnode*> mst; // minimal spanning tree
-    std::deque<mnode*> frontier; // all mnodes adjacent to the mst
-    std::unordered_set<mnode*> fset;
-    mnode* a = data + rand() % area;
+    std::unordered_set<uint> mst; // minimal spanning tree
+    std::deque<uint> frontier; // all mnodes adjacent to the mst
+    std::unordered_set<uint> fset;
+    uint a = rand() % area;
     addMst(a, -1, frontier, fset, mst);
-    MNODE_VISIT(*a);
+    MNODE_VISIT(data[a]);
     while (frontier.size()) {
         // choose random frontier
         int idx = rand() % frontier.size();
-        mnode* c = frontier[idx];
+        uint c = frontier[idx];
         addMst(c, idx, frontier, fset, mst);
         TICK
         activeNode = c;
         // destroy the walls of one of the adjacent mst nodes (at random)
-        MNODE_VISIT(*c);
+        MNODE_VISIT(data[c]);
         mnode_vec ins = visitedNeighbours(c);
-        mnode* neighbour = ins[rand() % ins.size()];
+        uint neighbour = ins[rand() % ins.size()];
         removeEdge(c, neighbour);
     }
     generated = true;
@@ -296,7 +302,7 @@ void Maze::genPrims(uint& steps) {
 }
 
 /* -------------------- SOLVERS -------------------- */
-void Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
+void Maze::solveDFSHelper(uint c, uint& steps, uint& pathLen) {
     if (solved) return;
     TICK
     activeNode = c;
@@ -305,16 +311,16 @@ void Maze::solveDFSHelper(mnode* c, uint& steps, uint& pathLen) {
         solved = true;
         return;
     }
-    if (MNODE_PATH(*c)) return;
+    if (MNODE_PATH(data[c])) return;
     if (c != start)
-        MNODE_SET_PATH(*c);
+        MNODE_SET_PATH(data[c]);
     mnode_vec accessible = accessibleNeighbours(c);
     for (auto n : accessible)
-        if (MNODE_FINISH(*n) || !MNODE_PATH(*n)) solveDFSHelper(n, steps, pathLen);
+        if (MNODE_FINISH(data[n]) || !MNODE_PATH(data[n])) solveDFSHelper(n, steps, pathLen);
     if (solved) return;
     if (c != start) {
-        MNODE_REMOVE_PATH(*c);
-        MNODE_SET_WASTED(*c);
+        MNODE_REMOVE_PATH(data[c]);
+        MNODE_SET_WASTED(data[c]);
         --pathLen;
     }
 }
@@ -326,14 +332,14 @@ void Maze::solveDFS(uint& steps, uint& pathLen) {
 }
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
-    std::queue<mnode*> q;
-    std::unordered_map<mnode*, mnode*> path;
-    mnode* current = start;
+    std::queue<uint> q;
+    std::unordered_map<uint, uint> path;
+    uint current = start;
     while (current != finish) {
         TICK
         activeNode = current;
         if (current != start)
-            MNODE_SET_WASTED(*current);
+            MNODE_SET_WASTED(data[current]);
         mnode_vec neighbours = accessibleNeighbours(current);
         for (auto neighbour : neighbours) {
             if (neighbour == finish){
@@ -341,7 +347,7 @@ void Maze::solveBFS(uint& steps, uint& pathLen) {
                 current = finish;
                 goto backtrack;
             }
-            if (!MNODE_WASTED(*neighbour) && neighbour != start)  {
+            if (!MNODE_WASTED(data[neighbour]) && neighbour != start)  {
                 q.push(neighbour);
                 path[neighbour] = current;
             }
@@ -354,35 +360,35 @@ backtrack:
         activeNode = current;
         current = path[current];
         if (current == start) break;
-        MNODE_SET_PATH(*current);
+        MNODE_SET_PATH(data[current]);
     }
     solved = true;
     executing = false;
 }
 
-double Maze::distCell(mnode* a, mnode* b) {
+double Maze::distCell(uint a, uint b) {
     coord diff = getCoord(a) - getCoord(b);
     return sqrt(diff.first*diff.first + diff.second*diff.second);
 }
 
 void Maze::solveAStar(uint& steps, uint& pathLen) {
-    std::unordered_map<mnode*, double> cost;
-    std::unordered_map<mnode*, mnode*> prev;
-    std::priority_queue<std::pair<double, mnode*>, std::vector<std::pair<double, mnode*>>, std::greater<std::pair<double, mnode*>>> pq;
+    std::unordered_map<uint, double> cost;
+    std::unordered_map<uint, uint> prev;
+    std::priority_queue<std::pair<double, uint>, std::vector<std::pair<double, uint>>, std::greater<std::pair<double, uint>>> pq;
     cost[start] = 0 + distCell(start, finish);
 
     for (uint i = 0; i < area; ++i) {
-        if (data + i!=start)cost[data + i] = DBL_MAX;
+        if (i!=start)cost[i] = DBL_MAX;
     }
 
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
-        mnode* u = pq.top().second;
+        uint u = pq.top().second;
         if (u == finish) {
             break;
         }
         if (u != start)
-            MNODE_SET_WASTED(*u);
+            MNODE_SET_WASTED(data[u]);
         TICK
         activeNode = u;
         pq.pop();
@@ -396,11 +402,11 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         }
     }
     // color path
-    mnode* cur = prev[finish];
+    uint cur = prev[finish];
     while (cur != start) {
         activeNode = cur;
         ++pathLen;
-        MNODE_SET_PATH(*cur);
+        MNODE_SET_PATH(data[cur]);
         cur = prev[cur];
     }
     solved = true;
@@ -408,21 +414,21 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
 }
 
 void Maze::solveDijkstra(uint& steps, uint& pathLen) {
-    std::unordered_map<mnode*, unsigned int> distance;
-    std::unordered_map<mnode*, mnode*> prev;
-    std::priority_queue<std::pair<unsigned int, mnode*>, std::vector<std::pair<unsigned int, mnode*>>, std::greater<std::pair<unsigned int, mnode*>>> pq;
+    std::unordered_map<uint, unsigned int> distance;
+    std::unordered_map<uint, uint> prev;
+    std::priority_queue<std::pair<unsigned int, uint>, std::vector<std::pair<unsigned int, uint>>, std::greater<std::pair<unsigned int, uint>>> pq;
     distance[start] = 0;
     for (uint i = 0; i < area; ++i) {
-        if (data + i != start) distance[data + i] = INT_MAX;
+        if (i != start) distance[i] = INT_MAX;
     }
     pq.push(std::make_pair(0, start));
     while (!pq.empty()) {
-        mnode* u = pq.top().second;
+        uint u = pq.top().second;
         if (u == finish) {
             break;
         }
         if (u != start)
-            MNODE_SET_WASTED(*u);
+            MNODE_SET_WASTED(data[u]);
         TICK
         activeNode = u;
         pq.pop();
@@ -437,11 +443,11 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         }
     }
     // color path
-    mnode* cur = prev[finish];
+    uint cur = prev[finish];
     while (cur != start) {
         ++pathLen;
         activeNode = cur;
-        MNODE_SET_PATH(*cur);
+        MNODE_SET_PATH(data[cur]);
         cur = prev[cur];
     }
     solved = true;
@@ -470,12 +476,12 @@ void Maze::solve(const std::string& funcName, uint& steps, uint& pathLen) {
         (this->*solver)(steps, pathLen);
 }
 
-ImU32 Maze::getFillCol(mnode* m) {
+ImU32 Maze::getFillCol(uint m) {
     if (m == activeNode) return active_col;
-    else if (MNODE_FINISH(*m)) return finish_col;
-    else if (MNODE_START(*m)) return start_col;
-    else if (MNODE_PATH(*m)) return path_col;
-    else if (MNODE_WASTED(*m)) return wasted_col;
+    else if (MNODE_FINISH(data[m])) return finish_col;
+    else if (MNODE_START(data[m])) return start_col;
+    else if (MNODE_PATH(data[m])) return path_col;
+    else if (MNODE_WASTED(data[m])) return wasted_col;
     else return bg_col;
 }
 
@@ -545,19 +551,19 @@ void Maze::display() {
         for (uint j = miny; j < maxy; ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
             ImVec2 p1 = p0 + wall_sz + cell_sz + wall_sz;
-            mnode* cur = getNode(i,j);
+            uint cur = getNode(i,j);
             draw_list->AddRectFilled(p0+wall_sz, p0+wall_sz+cell_sz, getFillCol(cur));
             // draw walls
-            if (!MNODE_GET_WALL(*cur, 0)) {
+            if (!MNODE_GET_WALL(data[cur], 0)) {
                 draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p0.y), ImVec2(p1.x - wall_sz.x, p0.y + wall_sz.y), getFillCol(cur));
             }
-            if (!MNODE_GET_WALL(*cur, 1)) {
+            if (!MNODE_GET_WALL(data[cur], 1)) {
                 draw_list->AddRectFilled(ImVec2(p1.x - wall_sz.x, p0.y + wall_sz.y), ImVec2(p1.x, p1.y - wall_sz.y), getFillCol(cur));
             }
-            if (!MNODE_GET_WALL(*cur, 2)) {
+            if (!MNODE_GET_WALL(data[cur], 2)) {
                 draw_list->AddRectFilled(ImVec2(p0.x + wall_sz.x, p1.y - wall_sz.y), ImVec2(p1.x - wall_sz.x, p1.y), getFillCol(cur));
             }
-            if (!MNODE_GET_WALL(*cur, 3)) {
+            if (!MNODE_GET_WALL(data[cur], 3)) {
                 draw_list->AddRectFilled(ImVec2(p0.x, p1.y - wall_sz.y), ImVec2(p0.x + cell_sz.x, p1.y - wall_sz.y), getFillCol(cur));
             }
         }
@@ -570,7 +576,7 @@ bool Maze::isWall(ImVec2 pos) { // in pixels
     uint x = (uint) (pos.x / full_sz.x);
     uint y = (uint) (pos.y / full_sz.y);
     ImVec2 vec = ImVec2(x*full_sz.x,y*full_sz.y);
-    mnode n = *getNode(x,y);
+    mnode n = data[getNode(x,y)];
     ImVec2 posInCell = pos - vec;
     if (posInCell.x < wall_sz.x && posInCell.y < wall_sz.y) return 1;
     if (posInCell.y < wall_sz.y && MNODE_GET_WALL(n,0)) return 1;

@@ -6,33 +6,33 @@ typedef uint32_t uint;
 typedef unsigned char uchar;
 typedef uchar mnode;
 typedef std::pair<int, int> coord;
-typedef std::vector<mnode*> mnode_vec;
-typedef std::pair<mnode*, mnode*> mnode_edge;
+typedef std::vector<uint> mnode_vec;
+typedef std::pair<uint, uint> mnode_edge;
 
 // first four bits are state flags, last 4 flags are the states of the walls
 #define NORTH 0
 #define EAST 1
 #define SOUTH 2
 #define WEST 3
-#define OPPOSITE_DIRECTION(X) (X+2%4)
+#define OPPOSITE_DIRECTION(X) (((X)+2)%4)
 #define MNODE_CLEAN                0b00001111
 #define MNODE_NOWALL               0b00000000
-#define MNODE_GET_WALL(X, Y) (X & (1 << (3-Y)))
-#define MNODE_REMOVE_WALL(X, Y) (X &= ~(1 << (3-Y)))
-#define MNODE_VISIT(X)       (X |= 0b10000000)
-#define MNODE_VISITED(X)     (X &  0b10000000)
-#define MNODE_UNVISIT(X)     (X &= 0b01111111)
-#define MNODE_SET_PATH(X)    (X |= 0b01000000)
-#define MNODE_PATH(X)        (X &  0b01000000)
-#define MNODE_REMOVE_PATH(X) (X &= 0b10111111)
-#define MNODE_SET_WASTED(X)  (X |= 0b00100000)
-#define MNODE_WASTED(X)      (X &  0b00100000)
-#define MNODE_START(X)       (X &  0b00010000)
-#define MNODE_SET_START(X)   (X |= 0b00010000)
-#define MNODE_FINISH(X)      ((X &  0b01110000) == 0b01110000)
-#define MNODE_SET_FINISH(X)  (X |= 0b01110000)
+#define MNODE_GET_WALL(X, Y) ((X) & (1 << (3-(Y))))
+#define MNODE_REMOVE_WALL(X, Y) ((X) &= ~(1 << (3-(Y))))
+#define MNODE_VISIT(X)       ((X) |= 0b10000000)
+#define MNODE_VISITED(X)     ((X) &  0b10000000)
+#define MNODE_UNVISIT(X)     ((X) &= 0b01111111)
+#define MNODE_SET_PATH(X)    ((X) |= 0b01000000)
+#define MNODE_PATH(X)        ((X) &  0b01000000)
+#define MNODE_REMOVE_PATH(X) ((X) &= 0b10111111)
+#define MNODE_SET_WASTED(X)  ((X) |= 0b00100000)
+#define MNODE_WASTED(X)      ((X) &  0b00100000)
+#define MNODE_START(X)       ((X) &  0b00010000)
+#define MNODE_SET_START(X)   ((X) |= 0b00010000)
+#define MNODE_FINISH(X)      (((X) &  0b01110000) == 0b01110000)
+#define MNODE_SET_FINISH(X)  ((X) |= 0b01110000)
 
-#define SHUFFLE(X) std::shuffle(X.begin(), X.end(), std::default_random_engine{seed})
+#define SHUFFLE(X) std::shuffle((X).begin(), (X).end(), std::default_random_engine{seed})
 
 static const coord DIRECTIONS[4] {
     std::make_pair(0,-1),
@@ -43,11 +43,13 @@ static const coord DIRECTIONS[4] {
 
 class Maze {
 private:
-    mnode* data, *start, *finish;
+    mnode* data;
+    uint start, finish;
     uint seed;
     uint W, H;
     uint area;
     uint stride;
+    std::vector<std::pair<uint, mnode>> history; // stores history of every change to the maze. The unsolved state will always be the number of cells
 
     bool generated;
     bool solved;
@@ -55,28 +57,28 @@ private:
     bool inBounds(const uint x, const uint y);
     bool inBounds(const coord& c);
 
-    void solveDFSHelper(mnode* c, uint& steps, uint& pathLen);
-    void dfsGenHelper(mnode* c, uint& steps);
-    double distCell(mnode* a, mnode* b);
-    mnode* setFind(std::unordered_map<mnode*, mnode*>& s, mnode* c);
-    void setUnion(std::unordered_map<mnode*, mnode*>& s, mnode* a, mnode* b);
-    void addMst(mnode* c, int idx, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset, std::unordered_set<mnode*>& mst);
-    void addFrontier(mnode* c, std::deque<mnode*>& frontier, std::unordered_set<mnode*>& fset);
+    void solveDFSHelper(uint c, uint& steps, uint& pathLen);
+    void dfsGenHelper(uint c, uint& steps);
+    double distCell(uint a, uint b);
+    uint setFind(std::unordered_map<uint, uint>& s, uint c);
+    void setUnion(std::unordered_map<uint, uint>& s, uint a, uint b);
+    void addMst(uint c, int idx, std::deque<uint>& frontier, std::unordered_set<uint>& fset, std::unordered_set<uint>& mst);
+    void addFrontier(uint c, std::deque<uint>& frontier, std::unordered_set<uint>& fset);
 
-    void removeEdge(mnode* a, mnode* b);
+    void removeEdge(uint a, uint b);
     void removeEdge(mnode_edge& e);
-    mnode_vec allNeighbours(mnode* m);
-    mnode_vec visitedNeighbours(mnode* m);
-    mnode_vec unvisitedNeighbours(mnode* m);
-    mnode_vec accessibleNeighbours(mnode* m);
-    mnode* randomUnvisited(mnode* m);
+    mnode_vec allNeighbours(uint m);
+    mnode_vec visitedNeighbours(uint m);
+    mnode_vec unvisitedNeighbours(uint m);
+    mnode_vec accessibleNeighbours(uint m);
+    uint randomUnvisited(uint m);
 
 public:
     ImVec2 canvas_p0, canvas_sz, wall_sz, cell_sz, full_sz;
     int delay;
     bool isAsync;
     bool executing;
-    mnode* activeNode;
+    uint activeNode;
     float cell_to_wall;
 
     std::future<void> ft;
@@ -94,9 +96,9 @@ public:
     uint getWidth();
     uint getHeight();
     uint getArea();
-    mnode* getNode(const coord& c);
-    mnode* getNode(const uint x, const uint y);
-    coord getCoord(mnode* m);
+    uint getNode(const coord& c);
+    uint getNode(const uint x, const uint y);
+    coord getCoord(uint m);
     uint getSeed();
     void setSeed(uint newSeed);
     void resetSeed();
@@ -117,7 +119,7 @@ public:
     void display();
     // for ray casting:
     bool isWall(ImVec2 pos); // samples actual screen pixels
-    ImU32 getFillCol(mnode* m);
+    ImU32 getFillCol(uint m);
 
     uint floatToPixel(ImVec2 c);
     float pixelToFloat();

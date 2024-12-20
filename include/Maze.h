@@ -2,12 +2,14 @@
 #include "common.h"
 #include "imgui.h"
 
+using namespace std;
+
 typedef uint32_t uint;
 typedef unsigned char uchar;
 typedef uchar mnode;
-typedef std::pair<int, int> coord;
-typedef std::vector<uint> mnode_vec;
-typedef std::pair<uint, uint> mnode_edge;
+typedef pair<int, int> coord;
+typedef vector<uint> mnode_vec;
+typedef pair<uint, uint> mnode_edge;
 
 // first four bits are state flags, last 4 flags are the states of the walls
 #define NORTH 0
@@ -31,25 +33,28 @@ typedef std::pair<uint, uint> mnode_edge;
 #define MNODE_SET_START(X)   ((X) |= 0b00010000)
 #define MNODE_FINISH(X)      (((X) &  0b01110000) == 0b01110000)
 #define MNODE_SET_FINISH(X)  ((X) |= 0b01110000)
+#define MNODE_ACTIVE(X)      ((X) == -1)
 
-#define SHUFFLE(X) std::shuffle((X).begin(), (X).end(), std::default_random_engine{seed})
+#define SHUFFLE(X) shuffle((X).begin(), (X).end(), default_random_engine{seed})
 
 static const coord DIRECTIONS[4] {
-    std::make_pair(0,-1),
-    std::make_pair(1,0),
-    std::make_pair(0,1),
-    std::make_pair(-1,0)
+    make_pair(0,-1),
+    make_pair(1,0),
+    make_pair(0,1),
+    make_pair(-1,0)
 };
 
 class Maze {
 private:
     mnode* data;
+    mnode* generatedData;
     uint start, finish;
+    uint activeNode;
     uint seed;
     uint W, H;
     uint area;
     uint stride;
-    std::vector<std::pair<uint, mnode>> history; // stores history of every change to the maze. The unsolved state will always be the number of cells
+    vector<pair<uint, mnode>> history; // stores history of every change to the maze. The unsolved state will always be the number of cells
 
     bool generated;
     bool solved;
@@ -60,10 +65,10 @@ private:
     void solveDFSHelper(uint c, uint& steps, uint& pathLen);
     void dfsGenHelper(uint c, uint& steps);
     double distCell(uint a, uint b);
-    uint setFind(std::unordered_map<uint, uint>& s, uint c);
-    void setUnion(std::unordered_map<uint, uint>& s, uint a, uint b);
-    void addMst(uint c, int idx, std::deque<uint>& frontier, std::unordered_set<uint>& fset, std::unordered_set<uint>& mst);
-    void addFrontier(uint c, std::deque<uint>& frontier, std::unordered_set<uint>& fset);
+    uint setFind(unordered_map<uint, uint>& s, uint c);
+    void setUnion(unordered_map<uint, uint>& s, uint a, uint b);
+    void addMst(uint c, int idx, deque<uint>& frontier, unordered_set<uint>& fset, unordered_set<uint>& mst);
+    void addFrontier(uint c, deque<uint>& frontier, unordered_set<uint>& fset);
 
     void removeEdge(uint a, uint b);
     void removeEdge(mnode_edge& e);
@@ -76,12 +81,10 @@ private:
 public:
     ImVec2 canvas_p0, canvas_sz, wall_sz, cell_sz, full_sz;
     int delay;
-    bool isAsync;
-    bool executing;
-    uint activeNode;
+    bool loopAnimation;
+    uint animationStep;
     float cell_to_wall;
-
-    std::future<void> ft;
+    bool animate;
 
     void stopAnimation();
 
@@ -113,8 +116,8 @@ public:
     void solveAStar(uint& steps, uint& pathLen);
     void solveDijkstra(uint& steps, uint& pathLen);
 
-    void generate(const std::string& funcName, uint& steps);
-    void solve(const std::string& funcName, uint& steps, uint& pathLen);
+    void generate(const string& funcName, uint& steps);
+    void solve(const string& funcName, uint& steps, uint& pathLen);
 
     void display();
     // for ray casting:

@@ -6,6 +6,8 @@
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
+
+using namespace std;
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -200,7 +202,7 @@ void App::renderControls() {
         maze->resize(maze_dimensions[0], maze_dimensions[1]);
     }
     #ifndef __EMSCRIPTEN__
-    ImGui::Checkbox("Animate", &maze->isAsync);
+    ImGui::Checkbox("Animate", &maze->animate);
     #endif
     ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25f);
     ImGui::Combo("Generation Algorithm", &current_gen_algo, gen_algos, IM_ARRAYSIZE(gen_algos));
@@ -210,8 +212,8 @@ void App::renderControls() {
         maze_generating = true;
 
         resetMaze();
-        std::string func = gen_algos[current_gen_algo];
-        std::cout << "Generating with " << gen_algos[current_gen_algo] << std::endl;
+        string func = gen_algos[current_gen_algo];
+        cout << "Generating with " << gen_algos[current_gen_algo] << endl;
         maze->generate(func, this->steps_gen);
         //if (maze->isGenerated()) t.join();
         maze_generating = false;
@@ -231,7 +233,7 @@ void App::renderControls() {
         }
         // if animate solving send to thread!
         maze->unsolve();
-        std::string func = solve_algos[current_solve_algo];
+        string func = solve_algos[current_solve_algo];
         maze->solve(func, this->steps_solve, this->len_path);
         maze_solving = false;
     }
@@ -287,10 +289,10 @@ void App::renderMenuBar() {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Export Maze")) {
-                std::cout << "Exporting maze..." << std::endl;
+                cout << "Exporting maze..." << endl;
             }
             if (ImGui::MenuItem("Import Maze")) {
-                std::cout << "Exporting maze..." << std::endl;
+                cout << "Exporting maze..." << endl;
             }
         }
     }
@@ -304,7 +306,7 @@ inline void App::resetMaze() {
 }
 
 void App::savePNG() {
-    std::cout << "saving PNG..." << std::endl;
+    cout << "saving PNG..." << endl;
 }
 
 void App::renderRayCast() {

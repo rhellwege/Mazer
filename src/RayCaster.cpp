@@ -2,6 +2,8 @@
 #include "settings.h"
 #include "vecop.h"
 
+using namespace std;
+
 #define PI 3.14159265358979
 #define TWO_PI PI*2
 #define HALF_PI PI/2
@@ -57,8 +59,8 @@ Ray RayCaster::cast(float planeRatio) {
     raydir.y = dir.y + plane.y * camx;
     map.x = (int)(pos.x / maze->full_sz.x);
     map.y = (int)(pos.y / maze->full_sz.y);
-    deltaDist.x = (raydir.x == 0) ? 1e30 : std::abs(1 / raydir.x);
-    deltaDist.y = (raydir.y == 0) ? 1e30 : std::abs(1 / raydir.y);
+    deltaDist.x = (raydir.x == 0) ? 1e30 : abs(1 / raydir.x);
+    deltaDist.y = (raydir.y == 0) ? 1e30 : abs(1 / raydir.y);
     // calc step and initial side distance
     if (raydir.x < 0) {
         stepx = -1;
@@ -151,7 +153,7 @@ void RayCaster::display() {
     draw_list->AddRectFilled(canvas_p0, ImVec2(canvas_p1.x, canvas_p1.y-canvas_sz.y/2), sky_col);
     draw_list->AddRectFilled(ImVec2(canvas_p0.x, canvas_p0.y + canvas_sz.y/2), canvas_p1, floor_col);
     float total = canvas_sz.x/castWidth;
-    
+
     for (uint i = 0; i < total; ++i) {
         Ray hit = cast(i/total);
         Wall wall = getWall(hit);

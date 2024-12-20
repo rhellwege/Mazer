@@ -1,3 +1,5 @@
 mazer
 ./obj/
 *.o
+.cache/
+compile_commands.json

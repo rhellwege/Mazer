@@ -2,19 +2,17 @@
 #include "settings.h"
 #include "vecop.h"
 
-#define TICK ++steps;\
-    if (isAsync)\
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));\
-    if (isAsync && !executing) return;\
+#define TICK
+using namespace std;
 
-static std::unordered_map<std::string, void (Maze::*)(uint&)> GEN_DICT = {
+static unordered_map<string, void (Maze::*)(uint&)> GEN_DICT = {
     {"DFS", &Maze::genDFS},
     {"Kruskal", &Maze::genKruskal},
     {"Prims", &Maze::genPrims},
     {"Prim's", &Maze::genPrims},
 };
 
-static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT = {
+static unordered_map<string, void (Maze::*)(uint&, uint&)> SOLVE_DICT = {
     {"DFS", &Maze::solveDFS},
     {"BFS", &Maze::solveBFS},
     {"Dijkstra", &Maze::solveDijkstra},
@@ -22,18 +20,18 @@ static std::unordered_map<std::string, void (Maze::*)(uint&, uint&)> SOLVE_DICT 
 };
 
 template <typename T,typename U>
-std::pair<T,U> operator+(const std::pair<T,U> & l,const std::pair<T,U> & r) {
+pair<T,U> operator+(const pair<T,U> & l,const pair<T,U> & r) {
     return {l.first+r.first,l.second+r.second};
 }
 template <typename T,typename U>
-std::pair<T,U> operator-(const std::pair<T,U> & l,const std::pair<T,U> & r) {
+pair<T,U> operator-(const pair<T,U> & l,const pair<T,U> & r) {
     return {l.first-r.first,l.second-r.second};
 }
 
 Maze::Maze(uint w, uint h) {
+    resize(w, h);
+    history = vector<pair<uint, mnode>>(w*h);
     cell_to_wall = DEFAULT_CELL_TO_WALL;
-    executing = false;
-    isAsync = false;
     canvas_p0 = ImVec2(0,0);
     canvas_sz = ImVec2(0,0);
     wall_sz = ImVec2(0,0);
@@ -41,26 +39,24 @@ Maze::Maze(uint w, uint h) {
     full_sz = ImVec2(0,0);
     generated = false;
     solved = false;
-    resize(w, h);
     seed = time(NULL);
     delay = DEFAULT_DELAY;
 }
 
 void Maze::reset() {
-    if (executing)
-        stopAnimation();
-    memset(data, MNODE_CLEAN, area); generated = false;
+    stopAnimation();
+    memset(data, MNODE_CLEAN, area);
+    generated = false;
     solved = false;
     start = 0;
     finish = start + area - 1;
-    activeNode = start;
+    //activeNode = start;
+    history.clear();
     MNODE_SET_START(data[0]);
     MNODE_SET_FINISH(data[finish]);
 }
 
 void Maze::stopAnimation() {
-    executing = false;
-    ft.wait();
 }
 
 bool Maze::inBounds(uint x, uint y) { return !(x < 0 || y < 0 || x >= W || y >= H);}
@@ -79,7 +75,7 @@ uint Maze::getNode(const uint x, const uint y) {
 }
 
 coord Maze::getCoord(uint m) {
-    return std::make_pair(m % stride, m / stride);
+    return make_pair(m % stride, m / stride);
 }
 
 void Maze::removeEdge(uint a, uint b) {
@@ -205,33 +201,31 @@ void Maze::dfsGenHelper(uint c, uint& steps) {
 
 void Maze::genDFS(uint& steps) {
     dfsGenHelper(rand() % area, steps);
-    generated = true;
-    executing = false;
 }
 
-uint Maze::setFind(std::unordered_map<uint, uint>& s, uint c) {
+uint Maze::setFind(unordered_map<uint, uint>& s, uint c) {
     if (s[c] == c) return c;
     return setFind(s, s[c]);
 }
 
-void Maze::setUnion(std::unordered_map<uint, uint>& s, uint a, uint b) {
+void Maze::setUnion(unordered_map<uint, uint>& s, uint a, uint b) {
     uint aParent = setFind(s, a);
     uint bParent = setFind(s, b);
     s[aParent] = bParent;
 }
 
 void Maze::genKruskal(uint& steps) {
-    std::vector<mnode_edge> edges;
-    std::unordered_map<uint, uint> sets;
+    vector<mnode_edge> edges;
+    unordered_map<uint, uint> sets;
     int wallsDown = 0;
     for (uint i = 0; i < W ; ++i) {
         for (uint j = 0; j < H; ++j) {
             uint c = getNode(i, j);
             sets[c] = c;
             if (i < W - 1)
-                edges.push_back(std::make_pair(c, getNode(i + 1, j)));
+                edges.push_back(make_pair(c, getNode(i + 1, j)));
             if (j < H - 1)
-                edges.push_back(std::make_pair(c, getNode(i, j+1)));
+                edges.push_back(make_pair(c, getNode(i, j+1)));
         }
     }
     //shuffle the edges:
@@ -247,11 +241,9 @@ void Maze::genKruskal(uint& steps) {
             activeNode = cur.first;
         }
     }
-    generated = true;
-    executing = false;
 }
 
-void Maze::addFrontier(uint c, std::deque<uint>& frontier, std::unordered_set<uint>& fset) {
+void Maze::addFrontier(uint c, deque<uint>& frontier, unordered_set<uint>& fset) {
     if (fset.find(c) != fset.end()) {
         printf("already in fset.\n");
         return;
@@ -260,7 +252,7 @@ void Maze::addFrontier(uint c, std::deque<uint>& frontier, std::unordered_set<ui
     fset.insert(c);
 }
 
-void Maze::addMst(uint c, int idx, std::deque<uint>& frontier, std::unordered_set<uint>& fset, std::unordered_set<uint>& mst) {
+void Maze::addMst(uint c, int idx, deque<uint>& frontier, unordered_set<uint>& fset, unordered_set<uint>& mst) {
     if (mst.find(c) != mst.end()) return;
     if (fset.find(c) != fset.end())
         fset.erase(c);
@@ -278,9 +270,9 @@ void Maze::addMst(uint c, int idx, std::deque<uint>& frontier, std::unordered_se
 }
 
 void Maze::genPrims(uint& steps) {
-    std::unordered_set<uint> mst; // minimal spanning tree
-    std::deque<uint> frontier; // all mnodes adjacent to the mst
-    std::unordered_set<uint> fset;
+    unordered_set<uint> mst; // minimal spanning tree
+    deque<uint> frontier; // all mnodes adjacent to the mst
+    unordered_set<uint> fset;
     uint a = rand() % area;
     addMst(a, -1, frontier, fset, mst);
     MNODE_VISIT(data[a]);
@@ -297,8 +289,6 @@ void Maze::genPrims(uint& steps) {
         uint neighbour = ins[rand() % ins.size()];
         removeEdge(c, neighbour);
     }
-    generated = true;
-    executing = false;
 }
 
 /* -------------------- SOLVERS -------------------- */
@@ -327,13 +317,11 @@ void Maze::solveDFSHelper(uint c, uint& steps, uint& pathLen) {
 
 void Maze::solveDFS(uint& steps, uint& pathLen) {
     solveDFSHelper(start, steps, pathLen);
-    solved = true;
-    executing = false;
 }
 
 void Maze::solveBFS(uint& steps, uint& pathLen) {
-    std::queue<uint> q;
-    std::unordered_map<uint, uint> path;
+    queue<uint> q;
+    unordered_map<uint, uint> path;
     uint current = start;
     while (current != finish) {
         TICK
@@ -362,8 +350,6 @@ backtrack:
         if (current == start) break;
         MNODE_SET_PATH(data[current]);
     }
-    solved = true;
-    executing = false;
 }
 
 double Maze::distCell(uint a, uint b) {
@@ -372,16 +358,16 @@ double Maze::distCell(uint a, uint b) {
 }
 
 void Maze::solveAStar(uint& steps, uint& pathLen) {
-    std::unordered_map<uint, double> cost;
-    std::unordered_map<uint, uint> prev;
-    std::priority_queue<std::pair<double, uint>, std::vector<std::pair<double, uint>>, std::greater<std::pair<double, uint>>> pq;
+    unordered_map<uint, double> cost;
+    unordered_map<uint, uint> prev;
+    priority_queue<pair<double, uint>, vector<pair<double, uint>>, greater<pair<double, uint>>> pq;
     cost[start] = 0 + distCell(start, finish);
 
     for (uint i = 0; i < area; ++i) {
         if (i!=start)cost[i] = DBL_MAX;
     }
 
-    pq.push(std::make_pair(0, start));
+    pq.push(make_pair(0, start));
     while (!pq.empty()) {
         uint u = pq.top().second;
         if (u == finish) {
@@ -397,7 +383,7 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
             if (cost[v] > cost[u] + distCell(u, finish)) {
                 cost[v] = cost[u] + distCell(u, finish);
                 prev[v] = u;
-                pq.push(std::make_pair(cost[v], v));
+                pq.push(make_pair(cost[v], v));
             }
         }
     }
@@ -409,19 +395,17 @@ void Maze::solveAStar(uint& steps, uint& pathLen) {
         MNODE_SET_PATH(data[cur]);
         cur = prev[cur];
     }
-    solved = true;
-    executing = false;
 }
 
 void Maze::solveDijkstra(uint& steps, uint& pathLen) {
-    std::unordered_map<uint, unsigned int> distance;
-    std::unordered_map<uint, uint> prev;
-    std::priority_queue<std::pair<unsigned int, uint>, std::vector<std::pair<unsigned int, uint>>, std::greater<std::pair<unsigned int, uint>>> pq;
+    unordered_map<uint, unsigned int> distance;
+    unordered_map<uint, uint> prev;
+    priority_queue<pair<unsigned int, uint>, vector<pair<unsigned int, uint>>, greater<pair<unsigned int, uint>>> pq;
     distance[start] = 0;
     for (uint i = 0; i < area; ++i) {
         if (i != start) distance[i] = INT_MAX;
     }
-    pq.push(std::make_pair(0, start));
+    pq.push(make_pair(0, start));
     while (!pq.empty()) {
         uint u = pq.top().second;
         if (u == finish) {
@@ -438,7 +422,7 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
             if (distance[v] > distance[u] + 1) {
                 distance[v] = distance[u] + 1;
                 prev[v] = u;
-                pq.push(std::make_pair(distance[v], v));
+                pq.push(make_pair(distance[v], v));
             }
         }
     }
@@ -450,30 +434,19 @@ void Maze::solveDijkstra(uint& steps, uint& pathLen) {
         MNODE_SET_PATH(data[cur]);
         cur = prev[cur];
     }
-    solved = true;
-    executing = false;
 }
 
-void Maze::generate(const std::string& funcName, uint& steps) {
+void Maze::generate(const string& funcName, uint& steps) {
     resetSeed();
     void(Maze::*generator)(uint&) = GEN_DICT[funcName];
-    // handle async
-    executing = true;
-    if (isAsync) {
-        ft = std::async(std::launch::async, [this, &steps, generator](){(this->*generator)(steps);});
-    }
-    else
-        (this->*generator)(steps);
+    (this->*generator)(steps);
+    generated = true;
 }
 
-void Maze::solve(const std::string& funcName, uint& steps, uint& pathLen) {
+void Maze::solve(const string& funcName, uint& steps, uint& pathLen) {
     void(Maze::*solver)(uint&,uint&) = SOLVE_DICT[funcName];
-    executing = true;
-    if (isAsync) {
-        ft = std::async(std::launch::async, [this, &steps, &pathLen, solver](){(this->*solver)(steps, pathLen);});
-    }
-    else
-        (this->*solver)(steps, pathLen);
+    (this->*solver)(steps, pathLen);
+    solved = true;
 }
 
 ImU32 Maze::getFillCol(uint m) {
@@ -543,10 +516,10 @@ void Maze::display() {
     }
     // draw grid
     draw_list->AddRectFilled(canvas_p0, canvas_p1, wall_col);
-    uint minx = std::max(0,(int)((canvas_p0.x - origin.x)/full_sz.x));
-    uint miny = std::max(0,(int)((canvas_p0.y - origin.y)/full_sz.y));
-    uint maxx = std::max(0,std::min((int)getWidth(),(int)ceil((canvas_p1.x - origin.x)/full_sz.x)));
-    uint maxy = std::max(0,std::min((int)getHeight(),(int)ceil((canvas_p1.y - origin.y)/full_sz.y)));
+    uint minx = max(0,(int)((canvas_p0.x - origin.x)/full_sz.x));
+    uint miny = max(0,(int)((canvas_p0.y - origin.y)/full_sz.y));
+    uint maxx = max(0,min((int)getWidth(),(int)ceil((canvas_p1.x - origin.x)/full_sz.x)));
+    uint maxy = max(0,min((int)getHeight(),(int)ceil((canvas_p1.y - origin.y)/full_sz.y)));
     for (uint i = minx; i < maxx; ++i) {
         for (uint j = miny; j < maxy; ++j) {
             ImVec2 p0 = {full_sz.x * i + origin.x, full_sz.y * j + origin.y};
